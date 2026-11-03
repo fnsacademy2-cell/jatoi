@@ -1534,52 +1534,23 @@
       const isSd = currentLang === 'sd';
       const promptMsg = isSd
         ? 'ڇا توھان سڀ ڊيٽا ختم ڪرڻ چاھيو ٿا؟\nهي لوڪل ڊيٽابيس، سيمپل رڪارڊ، ۽ ڪلائوڊ مان سمورو رڪارڊ مڪمل طور تي صاف ڪري ڇڏيندو.'
-        : 'Are you sure you want to clear ALL data?\nThis will permanently delete all sample data, local database records, and cloud database records.';
+        : 'Are you sure you want to clear ALL data?\nThis will permanently delete all sample data, local database records, and cloud database records from all locations.';
 
       if (!confirm(promptMsg)) return;
 
-      let cloudCleared = false;
-      let cloudError = null;
-
-      // 1. Clear Cloud Database if connected
-      if (isFirebaseActive && firebaseDb) {
-        try {
-          showToast(isSd ? 'ڪلائوڊ مان رڪارڊ صاف ٿي رهيا آهن...' : 'Deleting all records from Cloud...', 'info');
-          const snapshot = await firebaseDb.collection('fuel_records').get();
-          if (!snapshot.empty) {
-            let batch = firebaseDb.batch();
-            let count = 0;
-            for (const doc of snapshot.docs) {
-              batch.delete(doc.ref);
-              count++;
-              if (count % 400 === 0) {
-                await batch.commit();
-                batch = firebaseDb.batch();
-              }
-            }
-            await batch.commit();
-          }
-          cloudCleared = true;
-        } catch (e) {
-          console.error('Error clearing cloud collection:', e);
-          cloudError = e.message;
-        }
-      }
-
-      // 2. Clear In-Memory records
-      fuelRecords = [];
-
-      // 3. Clear Local Storage, Backup & Offline Sync Queue
+      // 1. Immediately mark user-cleared flag and clear local state
       try {
+        localStorage.setItem(USER_CLEARED_FLAG_KEY, 'true');
         localStorage.setItem(STORAGE_KEY, '[]');
         localStorage.removeItem(STORAGE_KEY + '_backup');
         localStorage.removeItem(OFFLINE_SYNC_QUEUE_KEY);
-        localStorage.setItem(USER_CLEARED_FLAG_KEY, 'true');
       } catch (e) {
         console.error('LocalStorage clear error:', e);
       }
 
-      // 4. Reset Charts to 0
+      fuelRecords = [];
+
+      // Reset Charts to 0
       if (vehicleChartInstance) {
         vehicleChartInstance.data.labels = [];
         vehicleChartInstance.data.datasets[0].data = [];
@@ -1590,12 +1561,61 @@
         fuelTypeChartInstance.update();
       }
 
-      // 5. Update UI
       updateDashboard();
       filterAndRenderTable();
       updateFormCloudSyncStatus();
 
-      // 6. Inform user
+      // 2. Identify or initialize Firestore database connection
+      let db = firebaseDb;
+      if (!db && window.firebase) {
+        const storedFb = localStorage.getItem(FIREBASE_CONFIG_KEY);
+        if (storedFb) {
+          try {
+            const cfg = JSON.parse(storedFb);
+            if (!firebase.apps.length) {
+              firebaseApp = firebase.initializeApp(cfg);
+            } else {
+              firebaseApp = firebase.app();
+            }
+            firebaseDb = firebaseApp.firestore();
+            db = firebaseDb;
+          } catch (e) { }
+        }
+      }
+
+      let cloudCleared = false;
+      let cloudError = null;
+
+      // 3. Delete from Firebase Cloud Firestore
+      if (db) {
+        try {
+          showToast(isSd ? 'ڪلائوڊ مان رڪارڊ صاف ٿي رهيا آهن...' : 'Deleting all records from Cloud...', 'info');
+
+          // Pause active real-time listener during deletion
+          if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
+          }
+
+          // Fetch all documents currently in the cloud collection
+          const snapshot = await db.collection('fuel_records').get();
+          if (!snapshot.empty) {
+            // Delete using Promise.all on doc references
+            const deletePromises = snapshot.docs.map(doc => doc.ref.delete());
+            await Promise.all(deletePromises);
+          }
+
+          cloudCleared = true;
+
+          // Re-subscribe to onSnapshot (collection is now empty)
+          initFirebaseFromStorage();
+        } catch (e) {
+          console.error('Error clearing cloud collection:', e);
+          cloudError = e.message;
+        }
+      }
+
+      // 4. User feedback
       if (cloudError) {
         showToast(
           isSd
@@ -2406,6 +2426,27 @@
         let isFirstCloudSnapshot = true;
         firestoreUnsubscribe = firebaseDb.collection('fuel_records')
           .onSnapshot((snapshot) => {
+            const isUserCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
+
+            // If the user has explicitly requested to clear all data,
+            // ensure NO cloud data is retrieved and any remaining cloud records are deleted!
+            if (isUserCleared) {
+              if (!snapshot.empty) {
+                console.log('Purging lingering records from Cloud following Clear All Data...');
+                snapshot.docs.forEach(doc => {
+                  doc.ref.delete().catch(() => { });
+                });
+              }
+              fuelRecords = [];
+              persistData();
+              updateDashboard();
+              filterAndRenderTable();
+              isFirebaseActive = true;
+              updateCloudUIState('connected', config.projectId);
+              updateFormCloudSyncStatus();
+              return;
+            }
+
             const queue = getOfflineSyncQueue();
             const cloudDocIds = new Set();
             const mergedMap = new Map();
