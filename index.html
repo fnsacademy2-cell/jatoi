@@ -1071,6 +1071,41 @@
     const FIREBASE_CONFIG_KEY = 'fleet_fuel_firebase_config_v1';
     const LANG_STORAGE_KEY = 'fleet_fuel_lang_v1';
     const USER_CLEARED_FLAG_KEY = 'fleet_fuel_cleared_by_user_v1';
+    const DELETED_DOCS_KEY = 'fleet_fuel_deleted_ids_v1';
+
+    function getDeletedRecordIds() {
+      try {
+        const raw = localStorage.getItem(DELETED_DOCS_KEY);
+        return raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function addDeletedRecordId(id) {
+      if (!id) return;
+      try {
+        const set = getDeletedRecordIds();
+        set.add(String(id));
+        localStorage.setItem(DELETED_DOCS_KEY, JSON.stringify(Array.from(set)));
+      } catch (e) { }
+    }
+
+    function removeDeletedRecordId(id) {
+      if (!id) return;
+      try {
+        const set = getDeletedRecordIds();
+        set.delete(String(id));
+        localStorage.setItem(DELETED_DOCS_KEY, JSON.stringify(Array.from(set)));
+      } catch (e) { }
+    }
+
+    function clearDeletedRecordIds() {
+      try {
+        localStorage.removeItem(DELETED_DOCS_KEY);
+      } catch (e) { }
+    }
+
     let fuelRecords = [];
     let deleteTargetId = null;
     let vehicleChartInstance = null;
@@ -1359,6 +1394,10 @@
     function handleFormSubmit(e) {
       e.preventDefault();
 
+      try {
+        localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+      } catch (e) { }
+
       const editId = document.getElementById('editEntryId').value;
       const vehiclePlate = document.getElementById('vehiclePlate').value.trim().toUpperCase();
       const fuelType = document.getElementById('fuelType').value;
@@ -1393,6 +1432,9 @@
           updatedAt: new Date().toISOString()
         };
 
+        removeDeletedRecordId(editId);
+        addToOfflineSyncQueue(editId);
+
         const idx = fuelRecords.findIndex(r => r.id === editId);
         if (idx !== -1) {
           fuelRecords[idx] = updatedRecord;
@@ -1419,10 +1461,10 @@
           createdAt: new Date().toISOString()
         };
 
+        removeDeletedRecordId(newRecord.id);
+        addToOfflineSyncQueue(newRecord.id);
+
         fuelRecords.unshift(newRecord);
-        try {
-          localStorage.removeItem(USER_CLEARED_FLAG_KEY);
-        } catch (e) { }
         persistData();
         updateDashboard();
         filterAndRenderTable();
@@ -1445,8 +1487,8 @@
 
       setTimeout(() => {
         resetForm();
-        switchTab('logs');
-      }, 1200);
+        switchTab('dashboard');
+      }, 1000);
     }
 
     function resetForm() {
@@ -1509,9 +1551,10 @@
     function executeDelete() {
       if (!deleteTargetId) return;
       const targetId = deleteTargetId;
+      addDeletedRecordId(targetId);
+      removeFromOfflineSyncQueue(targetId);
       fuelRecords = fuelRecords.filter(r => r.id !== targetId);
       persistData();
-      removeFromOfflineSyncQueue(targetId);
       closeDeleteModal();
       updateDashboard();
       filterAndRenderTable();
@@ -1560,6 +1603,7 @@
         localStorage.setItem(STORAGE_KEY, '[]');
         localStorage.removeItem(STORAGE_KEY + '_backup');
         localStorage.removeItem(OFFLINE_SYNC_QUEUE_KEY);
+        clearDeletedRecordIds();
       } catch (e) {
         console.error('LocalStorage clear error:', e);
       }
@@ -1664,9 +1708,10 @@
     async function loadDemoData() {
       toggleActionMenu();
       const isSd = currentLang === 'sd';
-      // User is explicitly requesting sample data, so remove cleared flag
+      // User is explicitly requesting sample data, so remove cleared flag and reset deleted list
       try {
         localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+        clearDeletedRecordIds();
       } catch (e) { }
 
       const sanitizedDemo = DEMO_RECORDS.map(sanitizeRecord);
@@ -2174,6 +2219,10 @@
         try {
           const parsed = JSON.parse(e.target.result);
           if (Array.isArray(parsed)) {
+            try {
+              localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+              clearDeletedRecordIds();
+            } catch (e) { }
             if (isFirebaseActive && firebaseDb) {
               const batch = firebaseDb.batch();
               parsed.forEach(r => {
@@ -2333,6 +2382,9 @@
     }
 
     function autoUploadRecordToCloud(record, isEdit = false) {
+      // Ensure record is always in sync queue until cloud write is acknowledged
+      addToOfflineSyncQueue(record.id);
+
       if (isFirebaseActive && firebaseDb) {
         firebaseDb.collection('fuel_records').doc(record.id).set(record, { merge: true })
           .then(() => {
@@ -2341,13 +2393,11 @@
             updateFormCloudSyncStatus();
           })
           .catch(err => {
-            console.warn('Direct cloud upload delayed, adding to offline queue:', err);
-            addToOfflineSyncQueue(record.id);
+            console.warn('Direct cloud upload delayed, pending in offline queue:', err);
             showToast('Saved locally. Will auto-upload to Cloud when reconnected.', 'info');
             updateFormCloudSyncStatus();
           });
       } else {
-        addToOfflineSyncQueue(record.id);
         const msg = isEdit ? 'Entry updated locally.' : 'Refuel logged locally. (Will auto-upload once Cloud is connected)';
         showToast(msg, 'success');
         updateFormCloudSyncStatus();
@@ -2447,9 +2497,8 @@
           .onSnapshot((snapshot) => {
             const isUserCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
 
-            // If the user has explicitly requested to clear all data,
-            // ensure NO cloud data is retrieved and any remaining cloud records are deleted!
-            if (isUserCleared) {
+            // Only honor user-cleared if local records are also empty
+            if (isUserCleared && (!fuelRecords || fuelRecords.length === 0)) {
               if (!snapshot.empty) {
                 console.log('Purging lingering records from Cloud following Clear All Data...');
                 snapshot.docs.forEach(doc => {
@@ -2466,26 +2515,39 @@
               return;
             }
 
-            const queue = getOfflineSyncQueue();
+            // If user has local records, any cleared flag is stale
+            if (fuelRecords && fuelRecords.length > 0) {
+              try {
+                localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+              } catch (e) { }
+            }
+
+            const deletedIds = getDeletedRecordIds();
             const cloudDocIds = new Set();
             const mergedMap = new Map();
 
-            // 1. Add all documents currently in the Cloud snapshot
+            // 1. Add all documents currently in the Cloud snapshot (filtering out deleted items)
             snapshot.forEach(doc => {
+              if (deletedIds.has(doc.id)) {
+                doc.ref.delete().catch(() => { });
+                return;
+              }
               const cleanCloud = sanitizeRecord({ id: doc.id, ...doc.data() });
               if (cleanCloud) {
                 mergedMap.set(doc.id, cleanCloud);
                 cloudDocIds.add(doc.id);
+                removeFromOfflineSyncQueue(doc.id);
               }
             });
 
-            // 2. Only preserve local records that are explicitly in the offline sync queue (created while offline)
-            queue.forEach(qId => {
-              if (!cloudDocIds.has(qId)) {
-                const localRec = (fuelRecords || []).find(r => r.id === qId);
-                if (localRec) {
-                  mergedMap.set(qId, sanitizeRecord(localRec));
-                }
+            // 2. Preserve local records that haven't been deleted
+            (fuelRecords || []).forEach(localRec => {
+              if (!localRec || !localRec.id) return;
+              if (deletedIds.has(localRec.id)) return;
+
+              if (!cloudDocIds.has(localRec.id)) {
+                mergedMap.set(localRec.id, sanitizeRecord(localRec));
+                addToOfflineSyncQueue(localRec.id);
               }
             });
 
@@ -2509,7 +2571,9 @@
             updateCloudUIState('error', err.message);
             updateFormCloudSyncStatus();
             // Critical: Keep all local records visible even on Firebase network/permission errors!
-            initData();
+            if (!fuelRecords || fuelRecords.length === 0) {
+              initData();
+            }
             updateDashboard();
             filterAndRenderTable();
             showToast('Firebase notice: ' + err.message + ' (Working in local offline mode)', 'info');
