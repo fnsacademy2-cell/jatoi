@@ -176,10 +176,6 @@
                   <input type="file" id="jsonFileInput" class="hidden" accept=".json"
                     onchange="importFromJSON(event)" />
                 </label>
-                <button onclick="loadDemoData()"
-                  class="w-full text-left px-4 py-2 text-xs text-amber-600 hover:bg-amber-50 flex items-center gap-2">
-                  <i class="ph-bold ph-sparkle text-base"></i> Load Demo Sample
-                </button>
                 <button onclick="confirmClearAll()"
                   class="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2">
                   <i class="ph-bold ph-trash text-base"></i> Clear All Data
@@ -1118,74 +1114,6 @@
     let receiptLang = 'en';
     let currentReceiptRecord = null;
 
-    // --- Demo Data Generator (Quick seed for user review) ---
-    const DEMO_RECORDS = [
-      {
-        id: 'rec_101',
-        vehiclePlate: 'LEA-4921',
-        fuelType: 'Diesel',
-        liters: 65.5,
-        ratePerLiter: 285.00,
-        totalCost: 18667.5,
-        pumpStation: 'Total Parco Motorway Services',
-        driverName: 'Rashid Khan',
-        odometerReading: 78500,
-        entryDateTime: '2026-10-28T09:30',
-        memoNotes: 'Slip #39110 - North Hub dispatch'
-      },
-      {
-        id: 'rec_102',
-        vehiclePlate: 'KHI-9014',
-        fuelType: 'Petrol',
-        liters: 42.0,
-        ratePerLiter: 279.50,
-        totalCost: 11739.0,
-        pumpStation: 'PSO Clifton Station',
-        driverName: 'Kamran Akmal',
-        odometerReading: 43210,
-        entryDateTime: '2026-10-29T14:15',
-        memoNotes: 'Field sales visit trip'
-      },
-      {
-        id: 'rec_103',
-        vehiclePlate: 'ISB-3032',
-        fuelType: 'Diesel',
-        liters: 80.0,
-        ratePerLiter: 285.00,
-        totalCost: 22800.0,
-        pumpStation: 'Shell Kashmir Highway',
-        driverName: 'Bilal Ahmed',
-        odometerReading: 112450,
-        entryDateTime: '2026-10-30T17:00',
-        memoNotes: 'Cargo logistics long route'
-      },
-      {
-        id: 'rec_104',
-        vehiclePlate: 'LEA-4921',
-        fuelType: 'Diesel',
-        liters: 50.0,
-        ratePerLiter: 284.50,
-        totalCost: 14225.0,
-        pumpStation: 'Attock Fuel Point',
-        driverName: 'Rashid Khan',
-        odometerReading: 79150,
-        entryDateTime: '2026-11-01T11:45',
-        memoNotes: 'Refill after return journey'
-      },
-      {
-        id: 'rec_105',
-        vehiclePlate: 'LHR-7711',
-        fuelType: 'Petrol',
-        liters: 35.0,
-        ratePerLiter: 279.50,
-        totalCost: 9782.5,
-        pumpStation: 'Hascol Gulberg',
-        driverName: 'Zubair Shah',
-        odometerReading: 26800,
-        entryDateTime: '2026-11-02T08:20',
-        memoNotes: 'City fleet inspection'
-      }
-    ];
 
     // --- Record Sanitizer & Type Defense ---
     function sanitizeRecord(rec) {
@@ -1301,8 +1229,7 @@
         } catch (e) { }
       }
 
-      // Never auto-inject DEMO_RECORDS into a blank database!
-      // DEMO_RECORDS can only be explicitly loaded via the "Load Sample Data" action menu button.
+      // Never auto-inject demo data into an empty database.
       fuelRecords = loaded;
     }
 
@@ -1695,36 +1622,6 @@
       }
     }
 
-    async function loadDemoData() {
-      toggleActionMenu();
-      const isSd = currentLang === 'sd';
-      // User is explicitly requesting sample data, so remove cleared flag and reset deleted list
-      try {
-        localStorage.removeItem(USER_CLEARED_FLAG_KEY);
-        clearDeletedRecordIds();
-      } catch (e) { }
-
-      const sanitizedDemo = DEMO_RECORDS.map(sanitizeRecord);
-      fuelRecords = sanitizedDemo;
-      persistData();
-      updateDashboard();
-      filterAndRenderTable();
-
-      if (isFirebaseActive && firebaseDb) {
-        try {
-          const batch = firebaseDb.batch();
-          sanitizedDemo.forEach(r => {
-            batch.set(firebaseDb.collection('fuel_records').doc(r.id), r, { merge: true });
-          });
-          await batch.commit();
-          showToast(isSd ? 'سيمپل ڊيٽا ڪلائوڊ ۽ مقامي طور لوڊ ٿي ويو.' : 'Sample demo dataset loaded to Cloud and Local!', 'success');
-        } catch (e) {
-          showToast(isSd ? 'ڪلائوڊ تي لوڊ نه ٿي سگهيو: ' + e.message : 'Failed to load demo to Cloud: ' + e.message, 'error');
-        }
-      } else {
-        showToast(isSd ? 'سيمپل ڊيمو رڪارڊ لوڊ ٿي ويا.' : 'Sample demo dataset loaded.', 'success');
-      }
-    }
 
     // --- Dashboard & Analytics Computation ---
     function updateDashboard() {
