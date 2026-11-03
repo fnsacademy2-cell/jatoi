@@ -1233,6 +1233,13 @@
 
     // --- Data Load & Sync with Backup Protection ---
     function initData() {
+      // If the user deliberately cleared all data, keep the database completely empty!
+      const userCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
+      if (userCleared) {
+        fuelRecords = [];
+        return;
+      }
+
       let loaded = null;
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -1259,16 +1266,8 @@
         } catch (e) { }
       }
 
-      // Check if the user deliberately cleared all data
-      const userCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
-
+      // Fallback to DEMO_RECORDS only on initial app load if never cleared
       if (!loaded || loaded.length === 0) {
-        if (userCleared) {
-          // User explicitly cleared all data: keep database empty, do not reload sample data!
-          fuelRecords = [];
-          return;
-        }
-        // First run ever (user has never cleared): load sample demo records
         loaded = DEMO_RECORDS.map(sanitizeRecord);
       }
 
@@ -1517,12 +1516,29 @@
       updateDashboard();
       filterAndRenderTable();
 
-      if (isFirebaseActive && firebaseDb) {
-        firebaseDb.collection('fuel_records').doc(targetId).delete()
+      let db = firebaseDb;
+      if (!db && window.firebase) {
+        const storedFb = localStorage.getItem(FIREBASE_CONFIG_KEY);
+        if (storedFb) {
+          try {
+            const cfg = JSON.parse(storedFb);
+            if (!firebase.apps || !firebase.apps.length) {
+              firebaseApp = firebase.initializeApp(cfg);
+            } else {
+              firebaseApp = firebase.app();
+            }
+            firebaseDb = firebaseApp.firestore();
+            db = firebaseDb;
+          } catch (e) { }
+        }
+      }
+
+      if (db) {
+        db.collection('fuel_records').doc(targetId).delete()
           .then(() => showToast('Record deleted locally & removed from Cloud.', 'info'))
           .catch(err => {
             console.error('Cloud delete failed:', err);
-            showToast('Deleted locally. Cloud sync pending.', 'info');
+            showToast('Deleted locally. Cloud sync pending: ' + err.message, 'warning');
           });
       } else {
         showToast('Record deleted.', 'info');
@@ -1600,15 +1616,20 @@
           // Fetch all documents currently in the cloud collection
           const snapshot = await db.collection('fuel_records').get();
           if (!snapshot.empty) {
-            // Delete using Promise.all on doc references
-            const deletePromises = snapshot.docs.map(doc => doc.ref.delete());
-            await Promise.all(deletePromises);
+            let batch = db.batch();
+            let count = 0;
+            for (const doc of snapshot.docs) {
+              batch.delete(doc.ref);
+              count++;
+              if (count % 400 === 0) {
+                await batch.commit();
+                batch = db.batch();
+              }
+            }
+            await batch.commit();
           }
 
           cloudCleared = true;
-
-          // Re-subscribe to onSnapshot (collection is now empty)
-          initFirebaseFromStorage();
         } catch (e) {
           console.error('Error clearing cloud collection:', e);
           cloudError = e.message;
@@ -2414,16 +2435,14 @@
           firestoreUnsubscribe = null;
         }
 
-        // Clean up previous app if any
-        if (firebase.apps && firebase.apps.length > 0) {
-          firebase.app().delete();
+        if (!firebase.apps || !firebase.apps.length) {
+          firebaseApp = firebase.initializeApp(config);
+        } else {
+          firebaseApp = firebase.app();
         }
+        firebaseDb = firebaseApp.firestore();
 
-        firebaseApp = firebase.initializeApp(config);
-        firebaseDb = firebase.firestore();
-
-        // Real-time snapshot listener on fuel_records collection with lossless two-way merge
-        let isFirstCloudSnapshot = true;
+        // Real-time snapshot listener on fuel_records collection
         firestoreUnsubscribe = firebaseDb.collection('fuel_records')
           .onSnapshot((snapshot) => {
             const isUserCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
@@ -2460,20 +2479,15 @@
               }
             });
 
-            // 2. On the first snapshot or for pending offline items:
-            // Preserve local records so an empty cloud collection never wipes local data!
-            (fuelRecords || []).forEach(localRec => {
-              if (!localRec || !localRec.id) return;
-              const isPendingUpload = queue.includes(localRec.id);
-              if (isFirstCloudSnapshot || isPendingUpload) {
-                if (!cloudDocIds.has(localRec.id)) {
-                  mergedMap.set(localRec.id, sanitizeRecord(localRec));
-                  addToOfflineSyncQueue(localRec.id);
+            // 2. Only preserve local records that are explicitly in the offline sync queue (created while offline)
+            queue.forEach(qId => {
+              if (!cloudDocIds.has(qId)) {
+                const localRec = (fuelRecords || []).find(r => r.id === qId);
+                if (localRec) {
+                  mergedMap.set(qId, sanitizeRecord(localRec));
                 }
               }
             });
-
-            isFirstCloudSnapshot = false;
 
             // 3. Sort chronological descending
             const records = Array.from(mergedMap.values());
