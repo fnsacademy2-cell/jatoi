@@ -1070,6 +1070,7 @@
     const STORAGE_KEY = 'fleet_fuel_mis_records_v1';
     const FIREBASE_CONFIG_KEY = 'fleet_fuel_firebase_config_v1';
     const LANG_STORAGE_KEY = 'fleet_fuel_lang_v1';
+    const USER_CLEARED_FLAG_KEY = 'fleet_fuel_cleared_by_user_v1';
     let fuelRecords = [];
     let deleteTargetId = null;
     let vehicleChartInstance = null;
@@ -1258,8 +1259,16 @@
         } catch (e) { }
       }
 
-      // Fallback to DEMO_RECORDS so user is never left with an empty screen on refresh
+      // Check if the user deliberately cleared all data
+      const userCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
+
       if (!loaded || loaded.length === 0) {
+        if (userCleared) {
+          // User explicitly cleared all data: keep database empty, do not reload sample data!
+          fuelRecords = [];
+          return;
+        }
+        // First run ever (user has never cleared): load sample demo records
         loaded = DEMO_RECORDS.map(sanitizeRecord);
       }
 
@@ -1273,6 +1282,8 @@
         localStorage.setItem(STORAGE_KEY, json);
         if (fuelRecords && fuelRecords.length > 0) {
           localStorage.setItem(STORAGE_KEY + '_backup', json);
+        } else {
+          localStorage.removeItem(STORAGE_KEY + '_backup');
         }
       } catch (e) {
         console.error('LocalStorage persist error:', e);
@@ -1410,6 +1421,9 @@
         };
 
         fuelRecords.unshift(newRecord);
+        try {
+          localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+        } catch (e) { }
         persistData();
         updateDashboard();
         filterAndRenderTable();
@@ -1517,50 +1531,122 @@
 
     async function confirmClearAll() {
       toggleActionMenu();
-      const msg = isFirebaseActive
-        ? 'Are you sure you want to clear ALL refuels from Firebase CLOUD database?'
-        : 'Are you sure you want to clear ALL saved local fuel records?';
-      if (confirm(msg)) {
-        if (isFirebaseActive && firebaseDb) {
-          try {
-            const batch = firebaseDb.batch();
-            fuelRecords.forEach(r => {
-              batch.delete(firebaseDb.collection('fuel_records').doc(r.id));
-            });
+      const isSd = currentLang === 'sd';
+      const promptMsg = isSd
+        ? 'ڇا توھان سڀ ڊيٽا ختم ڪرڻ چاھيو ٿا؟\nهي لوڪل ڊيٽابيس، سيمپل رڪارڊ، ۽ ڪلائوڊ مان سمورو رڪارڊ مڪمل طور تي صاف ڪري ڇڏيندو.'
+        : 'Are you sure you want to clear ALL data?\nThis will permanently delete all sample data, local database records, and cloud database records.';
+
+      if (!confirm(promptMsg)) return;
+
+      let cloudCleared = false;
+      let cloudError = null;
+
+      // 1. Clear Cloud Database if connected
+      if (isFirebaseActive && firebaseDb) {
+        try {
+          showToast(isSd ? 'ڪلائوڊ مان رڪارڊ صاف ٿي رهيا آهن...' : 'Deleting all records from Cloud...', 'info');
+          const snapshot = await firebaseDb.collection('fuel_records').get();
+          if (!snapshot.empty) {
+            let batch = firebaseDb.batch();
+            let count = 0;
+            for (const doc of snapshot.docs) {
+              batch.delete(doc.ref);
+              count++;
+              if (count % 400 === 0) {
+                await batch.commit();
+                batch = firebaseDb.batch();
+              }
+            }
             await batch.commit();
-            showToast('All records cleared from Cloud.', 'info');
-          } catch (e) {
-            showToast('Cloud clear failed: ' + e.message, 'error');
           }
-        } else {
-          fuelRecords = [];
-          persistData();
-          updateDashboard();
-          filterAndRenderTable();
-          showToast('All records cleared.', 'info');
+          cloudCleared = true;
+        } catch (e) {
+          console.error('Error clearing cloud collection:', e);
+          cloudError = e.message;
         }
+      }
+
+      // 2. Clear In-Memory records
+      fuelRecords = [];
+
+      // 3. Clear Local Storage, Backup & Offline Sync Queue
+      try {
+        localStorage.setItem(STORAGE_KEY, '[]');
+        localStorage.removeItem(STORAGE_KEY + '_backup');
+        localStorage.removeItem(OFFLINE_SYNC_QUEUE_KEY);
+        localStorage.setItem(USER_CLEARED_FLAG_KEY, 'true');
+      } catch (e) {
+        console.error('LocalStorage clear error:', e);
+      }
+
+      // 4. Reset Charts to 0
+      if (vehicleChartInstance) {
+        vehicleChartInstance.data.labels = [];
+        vehicleChartInstance.data.datasets[0].data = [];
+        vehicleChartInstance.update();
+      }
+      if (fuelTypeChartInstance) {
+        fuelTypeChartInstance.data.datasets[0].data = [0, 0];
+        fuelTypeChartInstance.update();
+      }
+
+      // 5. Update UI
+      updateDashboard();
+      filterAndRenderTable();
+      updateFormCloudSyncStatus();
+
+      // 6. Inform user
+      if (cloudError) {
+        showToast(
+          isSd
+            ? `لوڪل ۽ سيمپل ڊيٽا صاف ٿي ويو، پر ڪلائوڊ نقص: ${cloudError}`
+            : `Local & sample data cleared, but Cloud error: ${cloudError}`,
+          'warning'
+        );
+      } else if (cloudCleared) {
+        showToast(
+          isSd
+            ? 'سمورو ڊيٽا ڪاميابي سان ختم ڪيو ويو (لوڪل، ڪلائوڊ ۽ سيمپل رڪارڊ صاف)!'
+            : 'All data cleared successfully (Local, Cloud & Sample data removed)!',
+          'success'
+        );
+      } else {
+        showToast(
+          isSd
+            ? 'سمورو لوڪل ڊيٽابيس ۽ سيمپل رڪارڊ صاف ڪيو ويو!'
+            : 'All local database and sample records cleared!',
+          'success'
+        );
       }
     }
 
     async function loadDemoData() {
       toggleActionMenu();
+      const isSd = currentLang === 'sd';
+      // User is explicitly requesting sample data, so remove cleared flag
+      try {
+        localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+      } catch (e) { }
+
+      const sanitizedDemo = DEMO_RECORDS.map(sanitizeRecord);
+      fuelRecords = sanitizedDemo;
+      persistData();
+      updateDashboard();
+      filterAndRenderTable();
+
       if (isFirebaseActive && firebaseDb) {
         try {
           const batch = firebaseDb.batch();
-          DEMO_RECORDS.forEach(r => {
-            batch.set(firebaseDb.collection('fuel_records').doc(r.id), r);
+          sanitizedDemo.forEach(r => {
+            batch.set(firebaseDb.collection('fuel_records').doc(r.id), r, { merge: true });
           });
           await batch.commit();
-          showToast('Sample demo dataset loaded to Firebase Cloud.', 'success');
+          showToast(isSd ? 'سيمپل ڊيٽا ڪلائوڊ ۽ مقامي طور لوڊ ٿي ويو.' : 'Sample demo dataset loaded to Cloud and Local!', 'success');
         } catch (e) {
-          showToast('Failed to load demo to Cloud: ' + e.message, 'error');
+          showToast(isSd ? 'ڪلائوڊ تي لوڊ نه ٿي سگهيو: ' + e.message : 'Failed to load demo to Cloud: ' + e.message, 'error');
         }
       } else {
-        fuelRecords = DEMO_RECORDS.map(sanitizeRecord);
-        persistData();
-        updateDashboard();
-        filterAndRenderTable();
-        showToast('Sample demo dataset loaded.', 'success');
+        showToast(isSd ? 'سيمپل ڊيمو رڪارڊ لوڊ ٿي ويا.' : 'Sample demo dataset loaded.', 'success');
       }
     }
 
