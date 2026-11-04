@@ -865,6 +865,42 @@
 
       <!-- Modal Body (Scrollable) -->
       <div class="space-y-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+        <!-- Firestore Security Rules Warning Banner (Shown if permission-denied occurs) -->
+        <div id="firestoreRulesAlertBanner"
+          class="hidden p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2.5">
+          <div class="flex items-center gap-2 font-bold text-sm text-rose-700">
+            <i class="ph-bold ph-warning-circle text-xl text-rose-600"></i>
+            <span>Action Required: Firestore Database Rules are Blocking Access</span>
+          </div>
+          <p class="text-xs leading-relaxed text-rose-800">
+            Your Firebase project <code>aligul-d0875</code> is currently blocking writes from other locations
+            (Permission Denied). To enable all drivers, locations and your dashboard to sum up together:
+          </p>
+          <div
+            class="bg-white p-3 rounded-lg border border-rose-200 font-mono text-[11px] text-slate-800 overflow-x-auto select-all">
+            rules_version = '2';<br>
+            service cloud.firestore {<br>
+            &nbsp;&nbsp;match /databases/{database}/documents {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;}<br>
+            }
+          </div>
+          <p class="text-[11px] text-rose-700">
+            <strong>How to fix in 30 seconds:</strong> In Firebase Console &rarr; <code>aligul-d0875</code> &rarr;
+            <strong>Firestore Database</strong> &rarr; <strong>Rules</strong> tab &rarr; Paste rule above &rarr; Click
+            <strong>Publish</strong>.
+          </p>
+        </div>
+
+        <!-- Live Cloud Connection Test Button -->
+        <button type="button" onclick="testCloudConnection()" id="btnTestCloudSync"
+          class="w-full py-2.5 px-4 rounded-xl border border-brand-300 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+          <i class="ph-bold ph-cloud-check text-base"></i>
+          <span>Test Live Cloud Connection (Read/Write Ping)</span>
+        </button>
+
         <!-- Current Status Banner -->
         <div id="firebaseStatusBanner"
           class="p-3.5 rounded-xl border flex items-center justify-between bg-slate-50 border-slate-200">
@@ -1270,25 +1306,45 @@
     let currentReceiptRecord = null;
 
 
-    // --- Record Sanitizer & Type Defense ---
+    // --- Robust Numeric Parser (Handles commas, strings, currency formats) ---
+    function parseCleanNumber(val) {
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      if (!val) return 0;
+      const cleaned = String(val).replace(/,/g, '').trim();
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+
+    // --- Record Sanitizer & Multi-Device Field Defense ---
     function sanitizeRecord(rec) {
       if (!rec || typeof rec !== 'object') return null;
-      const liters = parseFloat(rec.liters) || 0;
-      const ratePerLiter = parseFloat(rec.ratePerLiter) || 0;
-      const totalCost = parseFloat(rec.totalCost) || (liters * ratePerLiter) || 0;
+      const rawLiters = rec.liters ?? rec.quantity ?? rec.volume ?? rec.litres ?? 0;
+      const rawRate = rec.ratePerLiter ?? rec.rate ?? rec.price ?? 0;
+      const rawTotal = rec.totalCost ?? rec.amount ?? rec.total ?? rec.cost;
+
+      const liters = parseCleanNumber(rawLiters);
+      const ratePerLiter = parseCleanNumber(rawRate);
+      let totalCost = parseCleanNumber(rawTotal);
+      if (!totalCost && liters > 0 && ratePerLiter > 0) {
+        totalCost = liters * ratePerLiter;
+      }
+
+      const rawFuel = String(rec.fuelType || rec.fuel || '').toLowerCase();
+      const fuelType = (rawFuel.includes('petrol') || rawFuel.includes('پيٽرول')) ? 'Petrol' : 'Diesel';
       const id = rec.id || ('rec_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+
       return {
         id: String(id),
-        vehiclePlate: String(rec.vehiclePlate || 'FLEET-001').toUpperCase().trim(),
-        fuelType: rec.fuelType === 'Petrol' ? 'Petrol' : 'Diesel',
+        vehiclePlate: String(rec.vehiclePlate || rec.vehicle || rec.plate || rec.plateNumber || 'FLEET').toUpperCase().trim(),
+        fuelType: fuelType,
         liters: Math.max(0, liters),
         ratePerLiter: Math.max(0, ratePerLiter),
         totalCost: Math.max(0, totalCost),
-        pumpStation: String(rec.pumpStation || 'Unspecified Station').trim(),
-        driverName: String(rec.driverName || 'Unassigned').trim(),
-        odometerReading: rec.odometerReading ? parseInt(rec.odometerReading) : null,
-        entryDateTime: rec.entryDateTime || new Date().toISOString().slice(0, 16),
-        memoNotes: rec.memoNotes ? String(rec.memoNotes).trim() : '',
+        pumpStation: String(rec.pumpStation || rec.pump || rec.station || 'Station').trim(),
+        driverName: String(rec.driverName || rec.driver || 'Unassigned').trim(),
+        odometerReading: (rec.odometerReading || rec.odometer || rec.odo) ? parseInt(parseCleanNumber(rec.odometerReading || rec.odometer || rec.odo)) : null,
+        entryDateTime: rec.entryDateTime || rec.dateTime || rec.date || new Date().toISOString().slice(0, 16),
+        memoNotes: String(rec.memoNotes || rec.memo || rec.notes || '').trim(),
         createdAt: rec.createdAt || new Date().toISOString(),
         updatedAt: rec.updatedAt || new Date().toISOString()
       };
@@ -1349,12 +1405,12 @@
           }
         });
 
-        // Periodic auto-sync check every 25 seconds
+        // Periodic auto-sync check every 5 seconds for fast cross-location syncing
         setInterval(function () {
           if (isFirebaseActive && firebaseDb) {
             flushOfflineSyncQueue();
           }
-        }, 25000);
+        }, 5000);
       } catch (err) {
         console.error('App bootstrap error:', err);
       }
@@ -2141,16 +2197,17 @@
 
       (fuelRecords || []).forEach(rec => {
         if (!rec) return;
-        const cost = parseFloat(rec.totalCost) || 0;
-        const liters = parseFloat(rec.liters) || 0;
-        const rate = parseFloat(rec.ratePerLiter) || 0;
-        const plate = String(rec.vehiclePlate || 'FLEET').toUpperCase();
+        const liters = parseCleanNumber(rec.liters);
+        const rate = parseCleanNumber(rec.ratePerLiter);
+        const cost = parseCleanNumber(rec.totalCost) || (liters * rate) || 0;
+        const plate = String(rec.vehiclePlate || 'FLEET').toUpperCase().trim();
+        const fuelType = String(rec.fuelType || '').toLowerCase();
 
         totalCost += cost;
         weightedRateSum += rate;
         vehicleSet.add(plate);
 
-        if (rec.fuelType === 'Petrol') {
+        if (fuelType.includes('petrol') || fuelType.includes('پيٽرول')) {
           totalPetrolLiters += liters;
           petrolCost += cost;
         } else {
@@ -2655,51 +2712,43 @@
     }
 
     // --- Firebase Cloud Database Management ---
+    // Automatically poll and connect once Firebase SDK finishes downloading
+    function waitForFirebaseAndConnect(config, showToastFeedback = false, maxAttempts = 30) {
+      let attempts = 0;
+      function tryConnect() {
+        attempts++;
+        if (window.firebase && window.firebase.firestore) {
+          connectFirebase(config, showToastFeedback);
+        } else if (attempts < maxAttempts) {
+          setTimeout(tryConnect, 200);
+        } else {
+          console.warn('[Fuel MIS] Firebase SDK script load timeout.');
+          updateCloudUIState('error', 'Firebase SDK loading timeout. Check internet connection.');
+        }
+      }
+      tryConnect();
+    }
+
     function initFirebaseFromStorage() {
       let config = null;
 
-      // 1. Check if device opened with WhatsApp/Auto-Setup link: #setup=...
-      try {
-        const hash = window.location.hash;
-        if (hash && hash.includes('setup=')) {
-          const encoded = hash.split('setup=')[1];
-          const raw = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.apiKey && parsed.projectId) {
-            localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(parsed));
-            config = parsed;
-            // Clean URL hash so address bar stays clean
-            history.replaceState(null, null, window.location.pathname + window.location.search);
-            setTimeout(() => {
-              showToast('Device automatically connected to Central Cloud Database!', 'success');
-            }, 600);
-          }
-        }
-      } catch (err) {
-        console.warn('URL auto-setup parse error:', err);
-      }
-
-      // 2. Check localStorage for previously configured settings
-      if (!config) {
+      // 1. Prioritize DEFAULT_FIREBASE_CONFIG so all phones & computers use the exact same live database
+      if (DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.apiKey && DEFAULT_FIREBASE_CONFIG.projectId) {
+        config = DEFAULT_FIREBASE_CONFIG;
+        try {
+          localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(DEFAULT_FIREBASE_CONFIG));
+        } catch (e) { }
+      } else {
         const stored = localStorage.getItem(FIREBASE_CONFIG_KEY);
         if (stored) {
-          try {
-            config = JSON.parse(stored);
-          } catch (e) {
-            console.error('Error parsing stored Firebase config:', e);
-          }
+          try { config = JSON.parse(stored); } catch (e) { }
         }
       }
 
-      // 3. Use DEFAULT_FIREBASE_CONFIG embedded in code (connects all devices out-of-the-box!)
-      if ((!config || !config.apiKey || !config.projectId) && DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.apiKey) {
-        config = DEFAULT_FIREBASE_CONFIG;
-      }
-
-      // 4. Connect if configuration is found
+      // 2. Connect via auto-retry
       if (config && config.apiKey && config.projectId) {
         populateFirebaseModalInputs(config);
-        connectFirebase(config, false);
+        waitForFirebaseAndConnect(config, false);
       } else {
         updateCloudUIState('disconnected');
       }
@@ -2927,10 +2976,17 @@
       }
     }
 
+    function showFirebaseRulesAlert() {
+      const banner = document.getElementById('firestoreRulesAlertBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
+      showToast('Firebase Notice: Cloud permission blocked. Check Firestore security rules.', 'warning');
+    }
+
     function connectFirebase(config, showToastFeedback = true) {
-      if (!window.firebase) {
-        showToast('Firebase SDK not loaded. Check internet connection.', 'error');
-        updateCloudUIState('error', 'Firebase SDK script failed to load');
+      if (!window.firebase || !window.firebase.firestore) {
+        waitForFirebaseAndConnect(config, showToastFeedback);
         return;
       }
 
@@ -3036,6 +3092,54 @@
         console.log(`Auto-uploaded ${records.length} local records to Firebase Cloud.`);
       } catch (err) {
         console.warn('Batch upload of local records to Cloud delayed:', err);
+      }
+    }
+
+    async function testCloudConnection() {
+      const btn = document.getElementById('btnTestCloudSync');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-base"></i> Testing Cloud Connection...';
+      }
+
+      if (!firebaseDb) {
+        initFirebaseFromStorage();
+      }
+
+      if (!firebaseDb) {
+        showToast('Firebase is initializing. Please wait a moment or check internet connection.', 'warning');
+        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+        return;
+      }
+
+      try {
+        const testId = '_ping_test_' + Date.now();
+        // 1. Test Write
+        await firebaseDb.collection('fuel_records').doc(testId).set({
+          test: true,
+          timestamp: new Date().toISOString()
+        });
+        // 2. Test Read
+        const snap = await firebaseDb.collection('fuel_records').doc(testId).get();
+        // 3. Clean up
+        await firebaseDb.collection('fuel_records').doc(testId).delete();
+
+        showToast('✅ Cloud Sync Verified! Real-time connection to aligul-d0875 is working perfectly!', 'success');
+        updateCloudUIState('connected', 'aligul-d0875');
+      } catch (err) {
+        console.error('Cloud Test Failed:', err);
+        if (err.code === 'permission-denied') {
+          showFirebaseRulesAlert();
+          showToast('❌ Firestore Permission Denied! Set rules to "allow read, write: if true;" in Firebase Console.', 'error');
+        } else {
+          showToast('❌ Cloud Test Notice: ' + err.message, 'error');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
       }
     }
 
