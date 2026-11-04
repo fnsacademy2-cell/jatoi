@@ -87,8 +87,7 @@
   <!-- Top Android-Style Navigation Header -->
   <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-      <div
-        class="flex items-center justify-between h-13 sm:h-15 gap-2 sm:gap-3 w-full flex-nowrap overflow-x-auto custom-scrollbar">
+      <div class="flex items-center justify-between h-13 sm:h-15 gap-2 sm:gap-3 w-full flex-nowrap">
 
         <!-- Left Side: Brand Logo -->
         <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 select-none cursor-pointer" onclick="exitToLanding()"
@@ -173,28 +172,28 @@
 
           <!-- Data Tools Dropdown (Admin Only) -->
           <div class="relative inline-block text-left shrink-0">
-            <button onclick="toggleActionMenu()" id="actionMenuBtn"
-              class="hidden items-center gap-1 px-2 py-1 text-xs font-semibold border border-slate-300/80 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white shadow-xs whitespace-nowrap">
-              <i class="ph-bold ph-faders text-xs sm:text-sm"></i>
-              <span class="hidden md:inline">Tools</span>
-              <i class="ph-bold ph-caret-down text-[10px]"></i>
+            <button onclick="toggleActionMenu(event)" id="actionMenuBtn" type="button"
+              class="hidden items-center gap-1.5 px-2.5 py-1 text-xs font-semibold border border-slate-300/80 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white shadow-xs whitespace-nowrap cursor-pointer select-none">
+              <i class="ph-bold ph-faders text-xs sm:text-sm text-slate-600"></i>
+              <span class="inline font-bold">Tools</span>
+              <i class="ph-bold ph-caret-down text-[10px] text-slate-400"></i>
             </button>
             <div id="actionMenuDropdown"
-              class="hidden absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-40 py-1 divide-y divide-slate-100">
+              class="hidden absolute right-0 rtl:left-0 rtl:right-auto top-full mt-2 w-56 rounded-2xl shadow-2xl bg-white border border-slate-200 z-[100] py-1 divide-y divide-slate-100 ring-1 ring-black/5">
               <div class="py-1">
-                <button onclick="exportToCSV()"
+                <button onclick="exportToCSV(); closeActionMenu();"
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
                   <i class="ph-bold ph-file-csv text-emerald-600 text-base"></i> Export to CSV
                 </button>
-                <button onclick="exportToJSON()"
+                <button onclick="exportToJSON(); closeActionMenu();"
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
                   <i class="ph-bold ph-file-code text-blue-600 text-base"></i> Backup (JSON)
                 </button>
-                <button onclick="openFirebaseModal(); toggleActionMenu();"
+                <button onclick="openFirebaseModal(); closeActionMenu();"
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-brand-600 hover:bg-brand-50 flex items-center gap-2 font-semibold">
                   <i class="ph-bold ph-cloud-arrow-up text-base"></i> Cloud / Firebase Setup
                 </button>
-                <button onclick="copyDriverInviteLink(); toggleActionMenu();"
+                <button onclick="copyDriverInviteLink(); closeActionMenu();"
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 flex items-center gap-2 font-medium">
                   <i class="ph-bold ph-share-network text-base"></i> Share Driver Link (WhatsApp)
                 </button>
@@ -204,9 +203,9 @@
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer">
                   <i class="ph-bold ph-upload-simple text-purple-600 text-base"></i> Restore (JSON)
                   <input type="file" id="jsonFileInput" class="hidden" accept=".json"
-                    onchange="importFromJSON(event)" />
+                    onchange="importFromJSON(event); closeActionMenu();" />
                 </label>
-                <button onclick="confirmClearAll()"
+                <button onclick="confirmClearAll(); closeActionMenu();"
                   class="w-full text-left rtl:text-right px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2">
                   <i class="ph-bold ph-trash text-base"></i> Clear All Data
                 </button>
@@ -307,6 +306,8 @@
 
     <!-- TAB 1: DASHBOARD OVERVIEW -->
     <section id="view-dashboard" class="space-y-6 hidden">
+      <!-- Live Cloud Multi-Location Sync Alert Banner -->
+      <div id="dashboardCloudAlertBanner" class="hidden"></div>
       <!-- KPI Stats Grid: Responsive 2-Col on Mobile / 5-Col on Desktop -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <!-- Spend Card (Full width on mobile, 1-col on desktop) -->
@@ -865,6 +866,28 @@
 
       <!-- Modal Body (Scrollable) -->
       <div class="space-y-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
+        <!-- Firestore Quota Exceeded Warning Banner (Shown if HTTP 429 resource-exhausted occurs) -->
+        <div id="firestoreQuotaAlertBanner"
+          class="hidden p-4 rounded-xl bg-amber-50 border-2 border-amber-300 text-amber-900 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm text-amber-800">
+            <i class="ph-bold ph-warning text-xl text-amber-600"></i>
+            <span>Firebase Cloud Daily Quota Exceeded (HTTP 429 RESOURCE_EXHAUSTED)</span>
+          </div>
+          <p class="text-xs leading-relaxed text-amber-800">
+            Google has temporarily paused cloud sync on project <code>aligul-d0875</code> because its daily free tier
+            write allowance (20,000 writes/day) was exhausted today.
+          </p>
+          <div class="p-2.5 bg-white rounded-lg border border-amber-200 text-xs text-slate-700 space-y-1">
+            <p><strong>Solution 1 (Instant):</strong> Create a fresh free Firebase project in 2 minutes on <a
+                href="https://console.firebase.google.com" target="_blank"
+                class="text-brand-600 font-bold underline">console.firebase.google.com</a>, copy its
+              <code>firebaseConfig</code> and paste it into the Quick Auto-Fill box below!
+            </p>
+            <p><strong>Solution 2:</strong> Wait for Google to automatically reset the free daily quota at midnight
+              Pacific Time.</p>
+          </div>
+        </div>
+
         <!-- Firestore Security Rules Warning Banner (Shown if permission-denied occurs) -->
         <div id="firestoreRulesAlertBanner"
           class="hidden p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2.5">
@@ -1391,10 +1414,23 @@
         initFirebaseFromStorage();
         updateFormCloudSyncStatus();
 
-        // On refresh or initial load, always open in landing page view
-        sessionStorage.removeItem(ROLE_STORAGE_KEY);
-        currentUserRole = null;
-        showLandingPage();
+        // Restore active role and view on refresh so user stays in portal and updates data
+        const savedRole = localStorage.getItem(ROLE_STORAGE_KEY) || sessionStorage.getItem(ROLE_STORAGE_KEY);
+        if (savedRole === 'admin') {
+          currentUserRole = 'admin';
+          applyRolePermissions('admin');
+          const savedTab = sessionStorage.getItem('fleet_fuel_active_tab_v1') || 'dashboard';
+          switchTab(savedTab);
+        } else if (savedRole === 'user') {
+          currentUserRole = 'user';
+          applyRolePermissions('user');
+          switchTab('refuel');
+        } else {
+          currentUserRole = null;
+          showLandingPage();
+        }
+        updateDashboard();
+        filterAndRenderTable();
 
         // Auto-upload when device reconnects to internet
         window.addEventListener('online', function () {
@@ -1434,9 +1470,10 @@
     document.addEventListener('click', function (e) {
       const btn = document.getElementById('actionMenuBtn');
       const menu = document.getElementById('actionMenuDropdown');
-      if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
-        menu.classList.add('hidden');
-      }
+      if (!menu || menu.classList.contains('hidden')) return;
+      if (btn && (btn === e.target || btn.contains(e.target))) return;
+      if (menu && (menu === e.target || menu.contains(e.target))) return;
+      menu.classList.add('hidden');
     });
 
     // --- Data Load & Sync with Backup Protection ---
@@ -1677,7 +1714,9 @@
 
     function loginAsAdmin() {
       currentUserRole = 'admin';
+      localStorage.setItem(ROLE_STORAGE_KEY, 'admin');
       sessionStorage.setItem(ROLE_STORAGE_KEY, 'admin');
+      sessionStorage.setItem('fleet_fuel_active_tab_v1', 'dashboard');
       applyRolePermissions('admin');
       switchTab('dashboard');
       showToast(currentLang === 'sd' ? 'ايڊمن پورٽل فعال ٿي ويو!' : 'Admin Portal active. Full access granted.', 'success');
@@ -1685,14 +1724,18 @@
 
     function loginAsUser() {
       currentUserRole = 'user';
+      localStorage.setItem(ROLE_STORAGE_KEY, 'user');
       sessionStorage.setItem(ROLE_STORAGE_KEY, 'user');
+      sessionStorage.setItem('fleet_fuel_active_tab_v1', 'refuel');
       applyRolePermissions('user');
       switchTab('refuel');
       showToast(currentLang === 'sd' ? 'يوزر پورٽل فعال ٿي ويو! (صرف اندراج جا حق)' : 'User Portal active (Data Entry Only).', 'info');
     }
 
     function exitToLanding() {
+      localStorage.removeItem(ROLE_STORAGE_KEY);
       sessionStorage.removeItem(ROLE_STORAGE_KEY);
+      sessionStorage.removeItem('fleet_fuel_active_tab_v1');
       currentUserRole = null;
       showLandingPage();
       showToast(currentLang === 'sd' ? 'پورٽل مان ٻاهر نڪري ويا آهيو.' : 'Exited to Portal Selection.', 'info');
@@ -1778,6 +1821,8 @@
         showToast(currentLang === 'sd' ? 'ڊرائيور کي صرف اندراج جا اختيار آهن.' : 'Drivers only have refuel entry permissions.', 'error');
         tabId = 'refuel';
       }
+
+      sessionStorage.setItem('fleet_fuel_active_tab_v1', tabId);
 
       // Hide landing view whenever entering app tabs
       const landingElem = document.getElementById('view-landing');
@@ -2066,7 +2111,7 @@
     }
 
     async function confirmClearAll() {
-      toggleActionMenu();
+      closeActionMenu();
       const isSd = currentLang === 'sd';
       const promptMsg = isSd
         ? 'ڇا توھان سڀ ڊيٽا ختم ڪرڻ چاھيو ٿا؟\nهي لوڪل ڊيٽابيس، سيمپل رڪارڊ، ۽ ڪلائوڊ مان سمورو رڪارڊ مڪمل طور تي صاف ڪري ڇڏيندو.'
@@ -2618,13 +2663,26 @@
     }
 
     // --- Export / Import Utilities ---
-    function toggleActionMenu() {
+    function toggleActionMenu(e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
       const menu = document.getElementById('actionMenuDropdown');
-      menu.classList.toggle('hidden');
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    }
+
+    function closeActionMenu() {
+      const menu = document.getElementById('actionMenuDropdown');
+      if (menu) {
+        menu.classList.add('hidden');
+      }
     }
 
     function exportToCSV() {
-      toggleActionMenu();
+      closeActionMenu();
       if (fuelRecords.length === 0) {
         showToast('No records to export!', 'error');
         return;
@@ -2656,7 +2714,7 @@
     }
 
     function exportToJSON() {
-      toggleActionMenu();
+      closeActionMenu();
       const blob = new Blob([JSON.stringify(fuelRecords, null, 2)], { type: 'application/json' });
       downloadFile(blob, `Fleet_Fuel_MIS_Backup_${new Date().toISOString().slice(0, 10)}.json`);
       showToast('Database JSON backup created.', 'success');
@@ -2932,7 +2990,10 @@
         showToast(`Auto-uploaded ${recordsToUpload.length} pending refuel records to Cloud!`, 'success');
         updateFormCloudSyncStatus();
       } catch (err) {
-        console.warn('Auto-upload of offline queue failed, will retry:', err);
+        console.warn('Auto-upload of offline queue failed:', err);
+        if (err.code === 'resource-exhausted' || (err.message && err.message.toLowerCase().includes('quota'))) {
+          showFirebaseQuotaAlert(err.message);
+        }
       }
     }
 
@@ -2981,7 +3042,41 @@
       if (banner) {
         banner.classList.remove('hidden');
       }
+      const dashBanner = document.getElementById('dashboardCloudAlertBanner');
+      if (dashBanner) {
+        dashBanner.classList.remove('hidden');
+        dashBanner.innerHTML = `
+          <div class="flex items-center justify-between gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-warning-circle text-lg text-rose-600 shrink-0"></i>
+              <span><strong>Cloud Permissions Blocked:</strong> Project <code>aligul-d0875</code> requires Firestore rules set to <code>allow read, write: if true;</code> so mobile devices can sync.</span>
+            </div>
+            <button onclick="openFirebaseModal()" class="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold shrink-0 shadow-xs hover:bg-rose-700">Fix Now</button>
+          </div>
+        `;
+      }
       showToast('Firebase Notice: Cloud permission blocked. Check Firestore security rules.', 'warning');
+    }
+
+    function showFirebaseQuotaAlert(msg) {
+      const banner = document.getElementById('firestoreQuotaAlertBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
+      const dashBanner = document.getElementById('dashboardCloudAlertBanner');
+      if (dashBanner) {
+        dashBanner.classList.remove('hidden');
+        dashBanner.innerHTML = `
+          <div class="flex items-center justify-between gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900">
+            <div class="flex items-center gap-2">
+              <i class="ph-bold ph-warning text-lg text-amber-600 shrink-0"></i>
+              <span><strong>Firebase Cloud Daily Quota Exceeded (HTTP 429):</strong> The free daily quota on project <code>aligul-d0875</code> has been exhausted today. Each mobile is saving locally until midnight reset, or connect a new free Firebase project.</span>
+            </div>
+            <button onclick="openFirebaseModal()" class="px-3 py-1 bg-amber-600 text-white rounded-lg font-bold shrink-0 shadow-xs hover:bg-amber-700">Cloud Settings</button>
+          </div>
+        `;
+      }
+      showToast('Firebase Cloud Notice: Daily quota exceeded on aligul-d0875. Operating in local mode.', 'warning');
     }
 
     function connectFirebase(config, showToastFeedback = true) {
@@ -3046,23 +3141,27 @@
             updateCloudUIState('connected', config.projectId);
             updateFormCloudSyncStatus();
 
-            // 4. If any local records are not yet in the cloud, upload them now so all devices receive them!
-            const unuploaded = records.filter(r => !cloudDocIds.has(r.id) && !deletedIds.has(r.id));
-            if (unuploaded.length > 0) {
-              uploadRecordsBatchToCloud(unuploaded);
-            }
+            // 4. Update sync state without recursive batch upload
           }, (err) => {
             console.error('Firestore onSnapshot error:', err);
             isFirebaseActive = false;
             updateCloudUIState('error', err.message);
             updateFormCloudSyncStatus();
+
+            if (err.code === 'resource-exhausted' || (err.message && err.message.toLowerCase().includes('quota'))) {
+              showFirebaseQuotaAlert(err.message);
+            } else if (err.code === 'permission-denied') {
+              showFirebaseSecurityRulesAlert();
+            } else {
+              showToast('Firebase notice: ' + err.message + ' (Working in local offline mode)', 'info');
+            }
+
             // Critical: Keep all local records visible even on Firebase network/permission errors!
             if (!fuelRecords || fuelRecords.length === 0) {
               initData();
             }
             updateDashboard();
             filterAndRenderTable();
-            showToast('Firebase notice: ' + err.message + ' (Working in local offline mode)', 'info');
           });
 
         if (showToastFeedback) {
