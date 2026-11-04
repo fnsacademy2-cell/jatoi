@@ -329,220 +329,79 @@
       </div>
     </div>
 
-    <!-- VIEW 0: LANDING PAGE (PORTAL SELECTION ON STARTUP) - LIGHT COLOR COLLAGE STYLE & GLASSY LOOK -->
-    <section id="view-landing" class="max-w-4xl mx-auto py-6 sm:py-12 px-3 sm:px-6 relative">
+    <!-- VIEW 0: LANDING PAGE (PORTAL SELECTION ON STARTUP) - CLEAN GLASSY LOOK -->
+    <section id="view-landing" class="max-w-xl mx-auto py-8 sm:py-16 px-4 relative">
 
       <!-- Ambient Pastel Glow Orbs for Glass Reflection -->
       <div
-        class="absolute -top-12 -left-12 w-64 h-64 bg-emerald-200/50 rounded-full blur-3xl pointer-events-none -z-10">
+        class="absolute -top-10 -left-10 w-60 h-60 bg-emerald-200/40 rounded-full blur-3xl pointer-events-none -z-10">
       </div>
-      <div class="absolute top-1/3 -right-12 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none -z-10">
-      </div>
-      <div
-        class="absolute -bottom-8 left-1/4 w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none -z-10">
+      <div class="absolute top-1/2 -right-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl pointer-events-none -z-10">
       </div>
 
-      <!-- Hero Collage Header -->
-      <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-12 space-y-3 sm:space-y-4">
-        <!-- Floating Academy Pill Badge -->
-        <div
-          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill text-xs font-semibold text-slate-700 shadow-xs hover:scale-105 transition-transform cursor-default">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span data-i18n="appFooterText">App designed by Zonish Computer Academy Newjatoi</span>
-          <span class="text-slate-300">|</span>
-          <a href="tel:03312943534" class="text-brand-600 font-bold hover:underline flex items-center gap-1">
-            <i class="ph-bold ph-phone text-xs"></i>
-            <span>03312943534</span>
-          </a>
-        </div>
-
-        <!-- Main Title -->
-        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+      <!-- Main Title Only -->
+      <div class="text-center mb-8 sm:mb-12">
+        <h2 id="landingTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
           Jatoi Fleet Fuel <span
             class="bg-gradient-to-r from-brand-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">MIS</span>
         </h2>
-        <p class="text-xs sm:text-sm text-slate-600 font-medium max-w-lg mx-auto" data-i18n="landingHeroSub">
-          Smart Multi-Location Fuel & Expense Management Console
-        </p>
-
-        <!-- Collage Floating Feature Tags -->
-        <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 pt-1 select-none">
-          <span
-            class="glass-pill px-2.5 py-1 rounded-xl text-[11px] font-semibold text-emerald-800 flex items-center gap-1">
-            <i class="ph-bold ph-table text-emerald-600"></i>
-            <span data-i18n="landingAdminFeature1">Google Sheets Cloud Sync</span>
-          </span>
-          <span
-            class="glass-pill px-2.5 py-1 rounded-xl text-[11px] font-semibold text-blue-800 flex items-center gap-1">
-            <i class="ph-bold ph-chart-pie-slice text-blue-600"></i>
-            <span data-i18n="landingAdminFeature2">Live Fuel Analytics</span>
-          </span>
-          <span
-            class="glass-pill px-2.5 py-1 rounded-xl text-[11px] font-semibold text-amber-800 flex items-center gap-1">
-            <i class="ph-bold ph-receipt text-amber-600"></i>
-            <span data-i18n="landingUserFeature3">Thermal Receipt Print</span>
-          </span>
-          <span
-            class="glass-pill px-2.5 py-1 rounded-xl text-[11px] font-semibold text-purple-800 flex items-center gap-1">
-            <i class="ph-bold ph-lock-key text-purple-600"></i>
-            <span data-i18n="landingPinNotice">PIN Protected Access</span>
-          </span>
-        </div>
       </div>
 
-      <!-- Collage Glassy Portal Cards (Side-by-Side on Tablet/Desktop, Stacked on Mobile) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7 max-w-3xl mx-auto">
+      <!-- Two Clean Glassy Boxes: Admin and User (No Passwords Displayed) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 max-w-lg mx-auto">
 
-        <!-- CARD 1: ADMIN PORTAL -->
+        <!-- Box 1: Admin -->
         <button type="button" onclick="promptRoleLogin('admin')"
-          class="glass-card-admin group rounded-3xl p-6 sm:p-8 text-left rtl:text-right flex flex-col justify-between transition-all duration-300 active:scale-[0.98] cursor-pointer relative overflow-hidden">
+          class="glass-card-admin group rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-4 transition-all duration-300 active:scale-95 cursor-pointer relative overflow-hidden shadow-md hover:shadow-xl">
 
           <!-- Decorative Top Accent Gradient Line -->
           <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-slate-700 via-slate-900 to-slate-700"></div>
 
           <!-- Glass Shimmer Highlight -->
           <div
-            class="absolute -top-12 -right-12 w-32 h-32 bg-slate-200/40 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500">
+            class="absolute -top-10 -right-10 w-28 h-28 bg-slate-200/40 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500">
           </div>
 
-          <!-- Card Top: Icon & Badge -->
-          <div class="flex items-center justify-between mb-5">
-            <div
-              class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-center justify-center text-3xl shadow-lg shadow-slate-900/25 group-hover:scale-105 group-hover:rotate-1 transition-all">
-              <i class="ph-bold ph-shield-check text-emerald-400"></i>
-            </div>
-            <span
-              class="glass-pill px-3 py-1 rounded-full text-xs font-bold text-slate-800 flex items-center gap-1.5 shadow-2xs"
-              data-i18n="landingBadgeAdmin">
-              <span class="w-2 h-2 rounded-full bg-slate-900"></span>
-              Admin Access
-            </span>
-          </div>
-
-          <!-- Card Body: Title & Features List -->
-          <div class="space-y-3 mb-6">
-            <div>
-              <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 group-hover:text-brand-700 transition-colors"
-                data-i18n="roleAdmin">
-                Admin Portal
-              </h3>
-              <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed" data-i18n="landingAdminDesc">
-                Full executive control, Google Sheets cloud sync, analytics, reports & system settings.
-              </p>
-            </div>
-
-            <!-- Bullet Feature Pills -->
-            <div class="space-y-1.5 pt-1 text-[11px] text-slate-700 font-medium">
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingAdminFeature1">Multi-Location Cloud Sync</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingAdminFeature2">KPI & Vehicle Spend Analytics</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingAdminFeature3">Export CSV & JSON Backups</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Bottom Action Button -->
+          <!-- Icon Box -->
           <div
-            class="w-full py-3 px-4 rounded-2xl bg-slate-900 group-hover:bg-black text-white text-xs sm:text-sm font-bold flex items-center justify-between shadow-md transition-colors">
-            <span class="flex items-center gap-2">
-              <i class="ph-bold ph-lock-key text-slate-400 text-sm"></i>
-              <span data-i18n="landingEnterAdmin">Login as Admin</span>
-            </span>
-            <span class="text-[11px] font-mono text-slate-300 bg-white/10 px-2 py-0.5 rounded-md">PIN: admin123</span>
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-xl shadow-slate-900/25 group-hover:scale-105 transition-all">
+            <i class="ph-bold ph-shield-check text-emerald-400"></i>
           </div>
+
+          <!-- Role Title -->
+          <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-brand-600 transition-colors"
+            data-i18n="roleAdmin">
+            Admin
+          </span>
         </button>
 
-        <!-- CARD 2: USER / DRIVER PORTAL -->
+        <!-- Box 2: User -->
         <button type="button" onclick="promptRoleLogin('user')"
-          class="glass-card-user group rounded-3xl p-6 sm:p-8 text-left rtl:text-right flex flex-col justify-between transition-all duration-300 active:scale-[0.98] cursor-pointer relative overflow-hidden">
+          class="glass-card-user group rounded-3xl p-8 sm:p-10 text-center flex flex-col items-center justify-center gap-4 transition-all duration-300 active:scale-95 cursor-pointer relative overflow-hidden shadow-md hover:shadow-xl">
 
           <!-- Decorative Top Accent Gradient Line -->
           <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-500"></div>
 
           <!-- Glass Shimmer Highlight -->
           <div
-            class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-200/50 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500">
+            class="absolute -top-10 -right-10 w-28 h-28 bg-emerald-200/50 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500">
           </div>
 
-          <!-- Card Top: Icon & Badge -->
-          <div class="flex items-center justify-between mb-5">
-            <div
-              class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-brand-500/25 group-hover:scale-105 group-hover:-rotate-1 transition-all">
-              <i class="ph-bold ph-gas-pump"></i>
-            </div>
-            <span
-              class="glass-pill px-3 py-1 rounded-full text-xs font-bold text-emerald-800 flex items-center gap-1.5 shadow-2xs"
-              data-i18n="landingBadgeUser">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              Driver Station
-            </span>
-          </div>
-
-          <!-- Card Body: Title & Features List -->
-          <div class="space-y-3 mb-6">
-            <div>
-              <h3
-                class="text-xl sm:text-2xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors"
-                data-i18n="roleUser">
-                User Portal
-              </h3>
-              <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed" data-i18n="landingUserDesc">
-                Driver & officer station to quickly log petrol/diesel refuels and generate instant receipts.
-              </p>
-            </div>
-
-            <!-- Bullet Feature Pills -->
-            <div class="space-y-1.5 pt-1 text-[11px] text-slate-700 font-medium">
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingUserFeature1">Fast Petrol & Diesel Logging</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingUserFeature2">Auto Liters & Total Calculation</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <i class="ph-bold ph-check text-emerald-600 text-xs"></i>
-                <span data-i18n="landingUserFeature3">Print Official Fuel Receipt</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Bottom Action Button -->
+          <!-- Icon Box -->
           <div
-            class="w-full py-3 px-4 rounded-2xl bg-brand-600 hover:bg-brand-700 group-hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center justify-between shadow-md shadow-brand-500/20 transition-colors">
-            <span class="flex items-center gap-2">
-              <i class="ph-bold ph-lock-key text-emerald-200 text-sm"></i>
-              <span data-i18n="landingEnterUser">Login as Driver / User</span>
-            </span>
-            <span class="text-[11px] font-mono text-emerald-100 bg-white/15 px-2 py-0.5 rounded-md">PIN: user123</span>
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-600 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-xl shadow-brand-500/25 group-hover:scale-105 transition-all">
+            <i class="ph-bold ph-gas-pump"></i>
           </div>
+
+          <!-- Role Title -->
+          <span
+            class="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-emerald-600 transition-colors"
+            data-i18n="roleUser">
+            User
+          </span>
         </button>
 
       </div>
-
-      <!-- Bottom Glassy Status Ribbon -->
-      <div
-        class="mt-8 max-w-xl mx-auto glass-panel rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left rtl:sm:text-right text-xs">
-        <div class="flex items-center gap-2">
-          <span id="landingCloudStatusDot"
-            class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-          <span id="landingCloudStatusText" class="font-semibold text-slate-700" data-i18n="landingCloudActive">
-            Google Sheets Cloud Sync: ACTIVE
-          </span>
-        </div>
-        <div class="text-[11px] text-slate-500">
-          <span>Version 2.0 • 100% Free & Unlimited</span>
-        </div>
-      </div>
-
     </section>
 
     <!-- TAB 1: DASHBOARD OVERVIEW -->
@@ -3862,11 +3721,13 @@ function deleteRecord(sheet, id) {
       const btnSd = document.getElementById('langBtn-sd');
       const brandElem = document.getElementById('brandAppTitle');
 
+      const landingTitleElem = document.getElementById('landingTitle');
       if (lang === 'sd') {
         document.documentElement.dir = 'rtl';
         document.documentElement.lang = 'sd';
         document.body.classList.add('font-sindhi');
         if (brandElem) brandElem.innerHTML = 'جتوئي فليٽ فيول <span class="text-brand-600">ايم آءِ ايس</span>';
+        if (landingTitleElem) landingTitleElem.innerHTML = 'جتوئي فليٽ فيول <span class="text-brand-600">ايم آءِ ايس</span>';
         document.title = 'جتوئي فليٽ فيول MIS - مئنيجمينٽ سسٽم';
         if (btnSd) btnSd.className = 'px-2.5 py-1.5 rounded-md transition text-brand-600 bg-brand-50 font-bold font-sindhi';
         if (btnEn) btnEn.className = 'px-2.5 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 font-bold';
@@ -3875,6 +3736,7 @@ function deleteRecord(sheet, id) {
         document.documentElement.lang = 'en';
         document.body.classList.remove('font-sindhi');
         if (brandElem) brandElem.innerHTML = 'Jatoi Fleet Fuel <span class="text-brand-600">MIS</span>';
+        if (landingTitleElem) landingTitleElem.innerHTML = 'Jatoi Fleet Fuel <span class="bg-gradient-to-r from-brand-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">MIS</span>';
         document.title = 'Jatoi Fleet Fuel MIS - Fuel & Mileage Tracker';
         if (btnEn) btnEn.className = 'px-2.5 py-1.5 rounded-md transition text-brand-600 bg-brand-50 font-bold';
         if (btnSd) btnSd.className = 'px-2.5 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 font-bold font-sindhi';
