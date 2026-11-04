@@ -85,112 +85,143 @@
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
   <!-- Top Android-Style Navigation Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-14 sm:h-16 items-center gap-2 sm:gap-3">
-        <!-- Logo / Brand -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <div
+        class="flex items-center justify-between h-13 sm:h-15 gap-2 sm:gap-3 w-full flex-nowrap overflow-x-auto custom-scrollbar">
+
+        <!-- Left Side: Brand Logo -->
+        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 select-none cursor-pointer" onclick="exitToLanding()"
+          title="Jatoi Fleet Fuel MIS">
           <div
-            class="w-9 h-9 sm:w-10 sm:h-10 bg-brand-600 text-white rounded-xl shadow-md shrink-0 flex items-center justify-center">
-            <i class="ph-bold ph-gas-pump text-xl sm:text-2xl"></i>
+            class="w-8 h-8 sm:w-9 sm:h-9 bg-brand-600 text-white rounded-xl shadow-md shrink-0 flex items-center justify-center transition-transform hover:scale-105">
+            <i class="ph-bold ph-gas-pump text-base sm:text-xl"></i>
           </div>
-          <div>
+          <div class="text-left rtl:text-right">
             <h1 id="brandAppTitle"
-              class="text-sm sm:text-lg font-bold tracking-tight text-slate-900 leading-tight whitespace-nowrap">
+              class="text-xs sm:text-sm md:text-base font-extrabold tracking-tight text-slate-900 leading-tight whitespace-nowrap">
               Jatoi Fleet Fuel <span class="text-brand-600">MIS</span>
             </h1>
-            <p class="text-[10px] sm:text-xs text-slate-500 hidden sm:block" data-i18n="appSubtitle">Tracker & Fuel
-              Management Console</p>
+            <p class="text-[9px] sm:text-[10px] text-slate-400 font-medium hidden lg:block leading-none mt-0.5"
+              data-i18n="appSubtitle">
+              Tracker & Fuel Management Console
+            </p>
           </div>
         </div>
 
-        <!-- Desktop Navigation Tabs -->
-        <nav class="hidden md:flex gap-2 bg-slate-100 p-1 rounded-xl" id="desktopNav">
-          <button onclick="switchTab('dashboard')" id="nav-dashboard"
-            class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-150 flex items-center gap-2 bg-white text-brand-600 shadow-sm">
-            <i class="ph-bold ph-chart-pie-slice"></i> <span data-i18n="navDashboard">Dashboard</span>
-          </button>
-          <button onclick="switchTab('refuel')" id="nav-refuel"
-            class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-150 flex items-center gap-2 text-slate-600 hover:text-slate-900">
-            <i class="ph-bold ph-plus-circle"></i> <span data-i18n="navRefuel">Log Refuel</span>
-          </button>
-          <button onclick="switchTab('logs')" id="nav-logs"
-            class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-150 flex items-center gap-2 text-slate-600 hover:text-slate-900">
-            <i class="ph-bold ph-notebook"></i> <span data-i18n="navLogs">Fuel Logs</span>
-          </button>
-        </nav>
+        <!-- Right Side: Compact Menu Tabs & Controls (Single Row) -->
+        <div class="flex items-center justify-end gap-1 sm:gap-1.5 md:gap-2 shrink-0 flex-nowrap">
 
-        <!-- Quick Actions & Import/Export -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Desktop Navigation Menu Tabs (Compact Size) -->
+          <nav
+            class="hidden md:flex items-center gap-0.5 sm:gap-1 bg-slate-100/90 p-0.5 sm:p-1 rounded-xl shrink-0 border border-slate-200/50"
+            id="desktopNav">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard"
+              class="tab-btn px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all duration-150 flex items-center gap-1 bg-white text-brand-600 shadow-xs whitespace-nowrap">
+              <i class="ph-bold ph-chart-pie-slice text-xs sm:text-sm"></i>
+              <span data-i18n="navDashboard">Dashboard</span>
+            </button>
+            <button onclick="switchTab('refuel')" id="nav-refuel"
+              class="tab-btn px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all duration-150 flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+              <i class="ph-bold ph-plus-circle text-xs sm:text-sm"></i>
+              <span data-i18n="navRefuel">Log Refuel</span>
+            </button>
+            <button onclick="switchTab('logs')" id="nav-logs"
+              class="tab-btn px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg transition-all duration-150 flex items-center gap-1 text-slate-600 hover:text-slate-900 whitespace-nowrap">
+              <i class="ph-bold ph-notebook text-xs sm:text-sm"></i>
+              <span data-i18n="navLogs">Fuel Logs</span>
+            </button>
+          </nav>
+
+          <!-- Active Role Indicator Badge -->
+          <div id="roleBadgeContainer" class="hidden items-center shrink-0">
+            <span id="roleBadgeText"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold shadow-xs whitespace-nowrap">
+            </span>
+          </div>
+
+          <!-- Switch Portal / Exit Button -->
+          <button onclick="exitToLanding()" id="btnExitPortal"
+            class="hidden items-center gap-1 px-2 py-1 text-xs font-semibold border border-slate-300/80 rounded-lg hover:bg-slate-100 transition text-slate-700 bg-white shrink-0 shadow-xs whitespace-nowrap"
+            title="Switch Portal / Exit">
+            <i class="ph-bold ph-sign-out text-xs sm:text-sm"></i>
+            <span class="hidden md:inline" data-i18n="btnExitPortal">Switch</span>
+          </button>
+
           <!-- Language Switcher: English / Sindhi (سنڌي) -->
-          <div class="inline-flex rounded-lg border border-slate-300 p-0.5 bg-white text-xs font-semibold shrink-0">
+          <div
+            class="inline-flex rounded-lg border border-slate-300/80 p-0.5 bg-white text-xs font-semibold shrink-0 shadow-xs whitespace-nowrap">
             <button type="button" onclick="setLanguage('en')" id="langBtn-en"
-              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md transition text-brand-600 bg-brand-50 font-bold"
-              title="English">
+              class="px-1.5 sm:px-2 py-0.5 rounded-md transition text-brand-600 bg-brand-50 font-bold" title="English">
               EN
             </button>
             <button type="button" onclick="setLanguage('sd')" id="langBtn-sd"
-              class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 font-bold font-sindhi"
+              class="px-1.5 sm:px-2 py-0.5 rounded-md transition text-slate-600 hover:text-slate-900 font-bold font-sindhi"
               title="سنڌي (Sindhi)">
               سنڌي
             </button>
           </div>
 
-          <!-- Firebase Cloud Sync Button -->
+          <!-- Firebase Cloud Sync Button (Admin Only) -->
           <button onclick="openFirebaseModal()" id="cloudStatusBtn"
-            title="Configure Firebase Cloud Database for multi-location driver syncing"
-            class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs md:text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white shrink-0">
-            <span id="cloudStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span id="cloudStatusText" class="hidden sm:inline">Local Mode</span>
-            <i class="ph-bold ph-cloud text-base text-slate-500"></i>
+            title="Configure Firebase Cloud Database for live multi-location sync"
+            class="hidden items-center gap-1 px-2 py-1 text-xs font-semibold border border-slate-300/80 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white shrink-0 shadow-xs whitespace-nowrap">
+            <span id="cloudStatusDot" class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+            <span id="cloudStatusText" class="hidden lg:inline text-xs">Local</span>
+            <i class="ph-bold ph-cloud text-xs sm:text-sm text-slate-500"></i>
           </button>
 
-          <!-- Data Tools Dropdown -->
+          <!-- Data Tools Dropdown (Admin Only) -->
           <div class="relative inline-block text-left shrink-0">
             <button onclick="toggleActionMenu()" id="actionMenuBtn"
-              class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs md:text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white">
-              <i class="ph-bold ph-faders text-base"></i>
-              <span class="hidden sm:inline">Data Tools</span>
-              <i class="ph-bold ph-caret-down text-xs"></i>
+              class="hidden items-center gap-1 px-2 py-1 text-xs font-semibold border border-slate-300/80 rounded-lg hover:bg-slate-50 transition text-slate-700 bg-white shadow-xs whitespace-nowrap">
+              <i class="ph-bold ph-faders text-xs sm:text-sm"></i>
+              <span class="hidden md:inline">Tools</span>
+              <i class="ph-bold ph-caret-down text-[10px]"></i>
             </button>
             <div id="actionMenuDropdown"
-              class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-40 py-1 divide-y divide-slate-100">
+              class="hidden absolute right-0 rtl:left-0 rtl:right-auto mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-40 py-1 divide-y divide-slate-100">
               <div class="py-1">
                 <button onclick="exportToCSV()"
-                  class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
                   <i class="ph-bold ph-file-csv text-emerald-600 text-base"></i> Export to CSV
                 </button>
                 <button onclick="exportToJSON()"
-                  class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2">
                   <i class="ph-bold ph-file-code text-blue-600 text-base"></i> Backup (JSON)
                 </button>
                 <button onclick="openFirebaseModal(); toggleActionMenu();"
-                  class="w-full text-left px-4 py-2 text-xs text-brand-600 hover:bg-brand-50 flex items-center gap-2 font-semibold">
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-brand-600 hover:bg-brand-50 flex items-center gap-2 font-semibold">
                   <i class="ph-bold ph-cloud-arrow-up text-base"></i> Cloud / Firebase Setup
+                </button>
+                <button onclick="copyDriverInviteLink(); toggleActionMenu();"
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 flex items-center gap-2 font-medium">
+                  <i class="ph-bold ph-share-network text-base"></i> Share Driver Link (WhatsApp)
                 </button>
               </div>
               <div class="py-1">
                 <label
-                  class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer">
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer">
                   <i class="ph-bold ph-upload-simple text-purple-600 text-base"></i> Restore (JSON)
                   <input type="file" id="jsonFileInput" class="hidden" accept=".json"
                     onchange="importFromJSON(event)" />
                 </label>
                 <button onclick="confirmClearAll()"
-                  class="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2">
+                  class="w-full text-left rtl:text-right px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2">
                   <i class="ph-bold ph-trash text-base"></i> Clear All Data
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Desktop New Refuel Header Button -->
-          <button onclick="switchTab('refuel')"
-            class="hidden sm:flex bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 text-xs md:text-sm font-medium rounded-lg items-center gap-1.5 shadow transition">
-            <i class="ph-bold ph-plus"></i>
+          <!-- New Refuel Header Button (Desktop Only for Admin) -->
+          <button onclick="switchTab('refuel')" id="headerRefuelBtn"
+            class="hidden md:inline-flex bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1 text-xs font-semibold rounded-lg items-center gap-1 shadow-sm transition shrink-0 whitespace-nowrap">
+            <i class="ph-bold ph-plus text-xs"></i>
             <span data-i18n="newRefuelBtn">New Refuel</span>
           </button>
         </div>
+
       </div>
     </div>
   </header>
@@ -243,8 +274,39 @@
       </div>
     </div>
 
+    <!-- VIEW 0: LANDING PAGE (PORTAL SELECTION ON STARTUP) -->
+    <section id="view-landing" class="max-w-xl mx-auto py-12 sm:py-24 px-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+        <!-- Box 1: Admin -->
+        <button type="button" onclick="promptRoleLogin('admin')"
+          class="group bg-white rounded-3xl p-8 sm:p-12 border-2 border-slate-200 hover:border-slate-900 transition-all duration-200 shadow-sm hover:shadow-xl flex flex-col items-center justify-center text-center gap-4 active:scale-95 cursor-pointer">
+          <div
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-900 group-hover:bg-brand-600 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-md transition-colors duration-200">
+            <i class="ph-bold ph-shield-check"></i>
+          </div>
+          <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-brand-600 transition-colors"
+            data-i18n="roleAdmin">
+            Admin
+          </span>
+        </button>
+
+        <!-- Box 2: User -->
+        <button type="button" onclick="promptRoleLogin('user')"
+          class="group bg-white rounded-3xl p-8 sm:p-12 border-2 border-brand-200 hover:border-brand-600 transition-all duration-200 shadow-sm hover:shadow-xl flex flex-col items-center justify-center text-center gap-4 active:scale-95 cursor-pointer">
+          <div
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-4xl sm:text-5xl shadow-md shadow-brand-500/25 transition-colors duration-200">
+            <i class="ph-bold ph-gas-pump"></i>
+          </div>
+          <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-brand-600 transition-colors"
+            data-i18n="roleUser">
+            User
+          </span>
+        </button>
+      </div>
+    </section>
+
     <!-- TAB 1: DASHBOARD OVERVIEW -->
-    <section id="view-dashboard" class="space-y-6">
+    <section id="view-dashboard" class="space-y-6 hidden">
       <!-- KPI Stats Grid: Responsive 2-Col on Mobile / 5-Col on Desktop -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <!-- Spend Card (Full width on mobile, 1-col on desktop) -->
@@ -701,6 +763,59 @@
 
   </main>
 
+  <!-- Role Password Verification Modal -->
+  <div id="rolePasswordModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4"
+    onclick="if(event.target === this) closeRolePasswordModal()">
+    <div
+      class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-slate-100 transform transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div id="roleModalIconBox"
+            class="w-11 h-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl shadow-md">
+            <i id="roleModalIcon" class="ph-bold ph-shield-check"></i>
+          </div>
+          <div>
+            <h3 id="roleModalTitle" class="text-base font-extrabold text-slate-900">Admin Login</h3>
+            <p id="roleModalSub" class="text-xs text-slate-500 font-medium">Enter password to continue</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeRolePasswordModal()"
+          class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <form id="rolePasswordForm" onsubmit="submitRolePassword(event)" class="space-y-4">
+        <div>
+          <label id="roleModalPwdLabel" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+          <div class="relative">
+            <input type="password" id="rolePasswordInput" required
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 pr-10 rtl:pr-3.5 rtl:pl-10 font-sans"
+              placeholder="••••••••" autocomplete="current-password" />
+            <button type="button" onclick="toggleRolePasswordVisibility()"
+              class="absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+              title="Show/Hide Password">
+              <i id="rolePwdEye" class="ph-bold ph-eye text-base"></i>
+            </button>
+          </div>
+          <p id="rolePasswordError" class="text-xs text-rose-600 font-medium mt-1.5 hidden"></p>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" onclick="closeRolePasswordModal()"
+            class="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+            Cancel
+          </button>
+          <button type="submit" id="roleModalSubmitBtn"
+            class="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold shadow-md transition">
+            Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Delete Confirmation Modal -->
   <div id="deleteModal"
     class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
@@ -866,6 +981,27 @@
               immediately</strong>. If the device is offline, entries are queued locally and automatically uploaded the
             moment connection is detected.
           </p>
+        </div>
+
+        <!-- Multi-Location Driver Auto-Setup Share Box -->
+        <div class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-blue-900 flex items-center gap-1.5">
+              <i class="ph-bold ph-share-network text-blue-600 text-sm"></i> Multi-Location Driver Auto-Connect
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-200/80 text-blue-800">
+              WhatsApp Link
+            </span>
+          </div>
+          <p class="text-[11px] text-blue-700 leading-relaxed">
+            Send this link to drivers in Hyderabad, Sukkur, Larkana, etc. When they tap it on their mobile phone, they
+            automatically link to this central database with zero manual configuration!
+          </p>
+          <button type="button" onclick="copyDriverInviteLink()"
+            class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 text-xs shadow-sm">
+            <i class="ph-bold ph-whatsapp-logo text-base"></i>
+            <span>Copy Auto-Connect Link for Drivers</span>
+          </button>
         </div>
 
         <!-- Sync Local Data to Cloud Box -->
@@ -1064,10 +1200,29 @@
   <script>
     // --- Application State & Storage Key ---
     const STORAGE_KEY = 'fleet_fuel_mis_records_v1';
+    const ROLE_STORAGE_KEY = 'fleet_fuel_role_v1';
+    const ADMIN_PIN_KEY = 'fleet_fuel_admin_pin_v1';
+    let currentUserRole = null; // 'admin', 'user', or null (landing)
     const FIREBASE_CONFIG_KEY = 'fleet_fuel_firebase_config_v1';
     const LANG_STORAGE_KEY = 'fleet_fuel_lang_v1';
     const USER_CLEARED_FLAG_KEY = 'fleet_fuel_cleared_by_user_v1';
     const DELETED_DOCS_KEY = 'fleet_fuel_deleted_ids_v1';
+
+    // =========================================================================
+    // --- CENTRAL FIREBASE CLOUD CONFIGURATION ---
+    // =========================================================================
+    // When you paste your Firebase credentials here, EVERY driver, mobile phone,
+    // and laptop in EVERY location automatically connects to the same live
+    // database without having to configure settings or enter keys on their phone!
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAURd1RlGJ1iMkjMAY_lfbWCN-na-9mIEg",
+      authDomain: "aligul-d0875.firebaseapp.com",
+      projectId: "aligul-d0875",
+      storageBucket: "aligul-d0875.firebasestorage.app",
+      messagingSenderId: "36712559408",
+      appId: "1:36712559408:web:97aadfe7e8f30b0dbc0ef5",
+      measurementId: "G-8B2L63YTN4"
+    };
 
     function getDeletedRecordIds() {
       try {
@@ -1176,11 +1331,14 @@
         initData();
         initLanguage();
         initDefaultDateTime();
-        updateDashboard();
-        filterAndRenderTable();
         initCharts();
         initFirebaseFromStorage();
         updateFormCloudSyncStatus();
+
+        // On refresh or initial load, always open in landing page view
+        sessionStorage.removeItem(ROLE_STORAGE_KEY);
+        currentUserRole = null;
+        showLandingPage();
 
         // Auto-upload when device reconnects to internet
         window.addEventListener('online', function () {
@@ -1227,12 +1385,10 @@
 
     // --- Data Load & Sync with Backup Protection ---
     function initData() {
-      // If user deliberately cleared all data, keep the database completely empty!
-      const userCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
-      if (userCleared) {
-        fuelRecords = [];
-        return;
-      }
+      // Clear legacy cleared flag so real entered records are never blocked from displaying
+      try {
+        localStorage.removeItem(USER_CLEARED_FLAG_KEY);
+      } catch (e) { }
 
       let loaded = [];
       try {
@@ -1284,8 +1440,292 @@
       document.getElementById('entryDateTime').value = now.toISOString().slice(0, 16);
     }
 
+    // --- Role-Based Access Control & Landing Page System ---
+    function showLandingPage() {
+      currentUserRole = null;
+      sessionStorage.removeItem(ROLE_STORAGE_KEY);
+
+      // Hide core views
+      ['dashboard', 'refuel', 'logs'].forEach(view => {
+        const el = document.getElementById(`view-${view}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      // Show landing portal
+      const landingElem = document.getElementById('view-landing');
+      if (landingElem) landingElem.classList.remove('hidden');
+
+      // Hide navigation headers & role indicators
+      const desktopNav = document.getElementById('desktopNav');
+      if (desktopNav) {
+        desktopNav.className = 'hidden items-center gap-1 bg-slate-100/90 p-1 rounded-xl shrink-0 border border-slate-200/50';
+      }
+
+      const mobileNav = document.getElementById('mobileBottomNav');
+      if (mobileNav) mobileNav.classList.add('hidden');
+
+      const cloudBtn = document.getElementById('cloudStatusBtn');
+      if (cloudBtn) {
+        cloudBtn.classList.add('hidden');
+        cloudBtn.classList.remove('inline-flex');
+      }
+
+      const actionBtn = document.getElementById('actionMenuBtn');
+      if (actionBtn) {
+        actionBtn.classList.add('hidden');
+        actionBtn.classList.remove('inline-flex');
+      }
+
+      const headerRefuel = document.getElementById('headerRefuelBtn');
+      if (headerRefuel) {
+        headerRefuel.className = 'hidden bg-brand-600 text-white px-2.5 py-1 text-xs font-semibold rounded-lg items-center gap-1 shrink-0 whitespace-nowrap';
+      }
+
+      const roleBadge = document.getElementById('roleBadgeContainer');
+      if (roleBadge) {
+        roleBadge.classList.add('hidden');
+        roleBadge.classList.remove('flex');
+      }
+
+      const exitBtn = document.getElementById('btnExitPortal');
+      if (exitBtn) {
+        exitBtn.classList.add('hidden');
+        exitBtn.classList.remove('inline-flex');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Role Password Verification System ---
+    let pendingLoginRole = null;
+    const ROLE_PASSWORDS = {
+      admin: 'admin123',
+      user: 'user123'
+    };
+
+    function promptRoleLogin(role) {
+      pendingLoginRole = role;
+      const modal = document.getElementById('rolePasswordModal');
+      const input = document.getElementById('rolePasswordInput');
+      const err = document.getElementById('rolePasswordError');
+      const title = document.getElementById('roleModalTitle');
+      const sub = document.getElementById('roleModalSub');
+      const icon = document.getElementById('roleModalIcon');
+      const iconBox = document.getElementById('roleModalIconBox');
+      const submitBtn = document.getElementById('roleModalSubmitBtn');
+      const eye = document.getElementById('rolePwdEye');
+      const isSd = currentLang === 'sd';
+
+      if (input) {
+        input.value = '';
+        input.type = 'password';
+      }
+      if (err) {
+        err.classList.add('hidden');
+        err.textContent = '';
+      }
+      if (eye) {
+        eye.className = 'ph-bold ph-eye text-base';
+      }
+
+      if (role === 'admin') {
+        if (title) title.textContent = isSd ? 'ايڊمن پورٽل لاگ ان' : 'Admin Portal Login';
+        if (sub) sub.textContent = isSd ? 'ايڊمن پاسورڊ داخل ڪريو' : 'Enter administrator password';
+        if (icon) icon.className = 'ph-bold ph-shield-check';
+        if (iconBox) iconBox.className = 'w-11 h-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl shadow-md';
+        if (submitBtn) submitBtn.className = 'flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold shadow-md transition';
+      } else {
+        if (title) title.textContent = isSd ? 'يوزر پورٽل لاگ ان' : 'User Portal Login';
+        if (sub) sub.textContent = isSd ? 'يوزر پاسورڊ داخل ڪريو' : 'Enter user access password';
+        if (icon) icon.className = 'ph-bold ph-gas-pump';
+        if (iconBox) iconBox.className = 'w-11 h-11 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-2xl shadow-md shadow-brand-500/25';
+        if (submitBtn) submitBtn.className = 'flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-500/25 transition';
+      }
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => input && input.focus(), 80);
+      }
+    }
+
+    function closeRolePasswordModal() {
+      const modal = document.getElementById('rolePasswordModal');
+      const input = document.getElementById('rolePasswordInput');
+      const err = document.getElementById('rolePasswordError');
+      if (input) input.value = '';
+      if (err) {
+        err.classList.add('hidden');
+        err.textContent = '';
+      }
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      pendingLoginRole = null;
+    }
+
+    function toggleRolePasswordVisibility() {
+      const input = document.getElementById('rolePasswordInput');
+      const eye = document.getElementById('rolePwdEye');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (eye) eye.className = 'ph-bold ph-eye-slash text-base';
+      } else {
+        input.type = 'password';
+        if (eye) eye.className = 'ph-bold ph-eye text-base';
+      }
+    }
+
+    function submitRolePassword(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('rolePasswordInput');
+      const err = document.getElementById('rolePasswordError');
+      const pwd = input ? input.value.trim() : '';
+      const isSd = currentLang === 'sd';
+
+      if (!pendingLoginRole) return;
+
+      const expectedPwd = ROLE_PASSWORDS[pendingLoginRole];
+      if (pwd === expectedPwd) {
+        const roleToLogin = pendingLoginRole;
+        closeRolePasswordModal();
+        if (roleToLogin === 'admin') {
+          loginAsAdmin();
+        } else {
+          loginAsUser();
+        }
+      } else {
+        if (err) {
+          err.textContent = isSd ? 'غلط پاسورڊ! مهرباني ڪري ٻيهر ڪوشش ڪريو.' : 'Incorrect password! Please try again.';
+          err.classList.remove('hidden');
+        }
+        if (input) {
+          input.focus();
+          input.select();
+        }
+        showToast(isSd ? 'غلط پاسورڊ!' : 'Incorrect password! Access denied.', 'error');
+      }
+    }
+
+    // Close password modal on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('rolePasswordModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeRolePasswordModal();
+        }
+      }
+    });
+
+    function loginAsAdmin() {
+      currentUserRole = 'admin';
+      sessionStorage.setItem(ROLE_STORAGE_KEY, 'admin');
+      applyRolePermissions('admin');
+      switchTab('dashboard');
+      showToast(currentLang === 'sd' ? 'ايڊمن پورٽل فعال ٿي ويو!' : 'Admin Portal active. Full access granted.', 'success');
+    }
+
+    function loginAsUser() {
+      currentUserRole = 'user';
+      sessionStorage.setItem(ROLE_STORAGE_KEY, 'user');
+      applyRolePermissions('user');
+      switchTab('refuel');
+      showToast(currentLang === 'sd' ? 'يوزر پورٽل فعال ٿي ويو! (صرف اندراج جا حق)' : 'User Portal active (Data Entry Only).', 'info');
+    }
+
+    function exitToLanding() {
+      sessionStorage.removeItem(ROLE_STORAGE_KEY);
+      currentUserRole = null;
+      showLandingPage();
+      showToast(currentLang === 'sd' ? 'پورٽل مان ٻاهر نڪري ويا آهيو.' : 'Exited to Portal Selection.', 'info');
+    }
+
+    function applyRolePermissions(role) {
+      const isSd = currentLang === 'sd';
+      const desktopNav = document.getElementById('desktopNav');
+      const mobileNav = document.getElementById('mobileBottomNav');
+      const cloudBtn = document.getElementById('cloudStatusBtn');
+      const actionBtn = document.getElementById('actionMenuBtn');
+      const headerRefuel = document.getElementById('headerRefuelBtn');
+      const roleBadgeContainer = document.getElementById('roleBadgeContainer');
+      const roleBadgeText = document.getElementById('roleBadgeText');
+      const exitBtn = document.getElementById('btnExitPortal');
+
+      if (exitBtn) {
+        exitBtn.classList.remove('hidden');
+        exitBtn.classList.add('inline-flex');
+      }
+      if (roleBadgeContainer) {
+        roleBadgeContainer.classList.remove('hidden');
+        roleBadgeContainer.classList.add('flex');
+      }
+
+      if (role === 'admin') {
+        if (desktopNav) {
+          desktopNav.className = 'hidden md:flex items-center gap-0.5 sm:gap-1 bg-slate-100/90 p-0.5 sm:p-1 rounded-xl shrink-0 border border-slate-200/50';
+        }
+        if (mobileNav) mobileNav.classList.remove('hidden');
+        if (cloudBtn) {
+          cloudBtn.classList.remove('hidden');
+          cloudBtn.classList.add('inline-flex');
+        }
+        if (actionBtn) {
+          actionBtn.classList.remove('hidden');
+          actionBtn.classList.add('inline-flex');
+        }
+        if (headerRefuel) {
+          headerRefuel.className = 'hidden md:inline-flex bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1 text-xs font-semibold rounded-lg items-center gap-1 shadow-sm transition shrink-0 whitespace-nowrap';
+        }
+
+        if (roleBadgeText) {
+          roleBadgeText.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white shadow-xs';
+          roleBadgeText.innerHTML = `<i class="ph-bold ph-shield-check text-emerald-400"></i><span>${isSd ? 'ايڊمن' : 'Admin'}</span>`;
+        }
+      } else {
+        // Driver / User role (Data Entry Only)
+        if (desktopNav) {
+          desktopNav.className = 'hidden items-center gap-1 bg-slate-100/90 p-1 rounded-xl shrink-0 border border-slate-200/50';
+        }
+        if (mobileNav) mobileNav.classList.add('hidden');
+        if (cloudBtn) {
+          cloudBtn.classList.add('hidden');
+          cloudBtn.classList.remove('inline-flex');
+        }
+        if (actionBtn) {
+          actionBtn.classList.add('hidden');
+          actionBtn.classList.remove('inline-flex');
+        }
+        if (headerRefuel) {
+          headerRefuel.className = 'hidden bg-brand-600 text-white px-2.5 py-1 text-xs font-semibold rounded-lg items-center gap-1 shrink-0 whitespace-nowrap';
+        }
+
+        if (roleBadgeText) {
+          roleBadgeText.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200';
+          roleBadgeText.innerHTML = `<i class="ph-bold ph-user"></i><span>${isSd ? 'يوزر' : 'User'}</span>`;
+        }
+        resetForm();
+      }
+
+      filterAndRenderTable();
+    }
+
     // --- Tab Navigation System (Desktop & Android Bottom Bar) ---
     function switchTab(tabId) {
+      if (!currentUserRole) {
+        showLandingPage();
+        return;
+      }
+
+      if (currentUserRole === 'user' && tabId !== 'refuel') {
+        showToast(currentLang === 'sd' ? 'ڊرائيور کي صرف اندراج جا اختيار آهن.' : 'Drivers only have refuel entry permissions.', 'error');
+        tabId = 'refuel';
+      }
+
+      // Hide landing view whenever entering app tabs
+      const landingElem = document.getElementById('view-landing');
+      if (landingElem) landingElem.classList.add('hidden');
       const views = ['dashboard', 'refuel', 'logs'];
       views.forEach(view => {
         const viewElem = document.getElementById(`view-${view}`);
@@ -1353,6 +1793,12 @@
       } catch (e) { }
 
       const editId = document.getElementById('editEntryId').value;
+
+      if (editId && currentUserRole !== 'admin') {
+        showToast(currentLang === 'sd' ? 'صرف ايڊمن رڪارڊ تبديل ڪري سگهي ٿو.' : 'Access Denied: Only Admin can edit records.', 'error');
+        resetForm();
+        return;
+      }
       const vehiclePlate = document.getElementById('vehiclePlate').value.trim().toUpperCase();
       const fuelType = document.getElementById('fuelType').value;
       const liters = parseFloat(document.getElementById('liters').value);
@@ -1369,6 +1815,7 @@
         return;
       }
 
+      let savedRecordId = editId;
       if (editId) {
         // Updating existing entry (Instant Local Update + Auto Cloud Upload)
         const updatedRecord = {
@@ -1439,9 +1886,16 @@
         submitBtn.innerHTML = `<i class="ph-bold ph-check-circle text-lg"></i><span>${successMsg}</span>`;
       }
 
+      if (!savedRecordId && typeof newRecord !== 'undefined' && newRecord) {
+        savedRecordId = newRecord.id;
+      }
       setTimeout(() => {
         resetForm();
-        switchTab('dashboard');
+        if (currentUserRole === 'user') {
+          if (savedRecordId) openReceiptModal(savedRecordId);
+        } else {
+          switchTab('dashboard');
+        }
       }, 1200);
     }
 
@@ -1461,6 +1915,10 @@
     }
 
     function editEntry(id) {
+      if (currentUserRole !== 'admin') {
+        showToast(currentLang === 'sd' ? 'صرف ايڊمن رڪارڊ ايڊٽ ڪري سگهي ٿو.' : 'Access Denied: Only Admin can edit records.', 'error');
+        return;
+      }
       const record = fuelRecords.find(r => r.id === id);
       if (!record) return;
 
@@ -1489,6 +1947,10 @@
 
     // --- Deletion Flow ---
     function openDeleteModal(id) {
+      if (currentUserRole !== 'admin') {
+        showToast(currentLang === 'sd' ? 'صرف ايڊمن رڪارڊ ڊيليٽ ڪري سگهي ٿو.' : 'Access Denied: Only Admin can delete records.', 'error');
+        return;
+      }
       deleteTargetId = id;
       const modal = document.getElementById('deleteModal');
       modal.classList.remove('hidden');
@@ -1503,6 +1965,11 @@
     }
 
     function executeDelete() {
+      if (currentUserRole !== 'admin') {
+        showToast(currentLang === 'sd' ? 'صرف ايڊمن رڪارڊ ڊيليٽ ڪري سگهي ٿو.' : 'Access Denied: Only Admin can delete records.', 'error');
+        closeDeleteModal();
+        return;
+      }
       if (!deleteTargetId) return;
       const targetId = deleteTargetId;
       addDeletedRecordId(targetId);
@@ -1582,11 +2049,17 @@
       // 2. Identify or initialize Firestore database connection
       let db = firebaseDb;
       if (!db && window.firebase) {
+        let cfg = null;
         const storedFb = localStorage.getItem(FIREBASE_CONFIG_KEY);
         if (storedFb) {
+          try { cfg = JSON.parse(storedFb); } catch (e) { }
+        }
+        if (!cfg && DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.apiKey && DEFAULT_FIREBASE_CONFIG.projectId) {
+          cfg = DEFAULT_FIREBASE_CONFIG;
+        }
+        if (cfg) {
           try {
-            const cfg = JSON.parse(storedFb);
-            if (!firebase.apps.length) {
+            if (!firebase.apps || !firebase.apps.length) {
               firebaseApp = firebase.initializeApp(cfg);
             } else {
               firebaseApp = firebase.app();
@@ -1995,12 +2468,14 @@
                   <button onclick="openReceiptModal('${rec.id}')" title="${isSd ? 'رسيد ڏسو / تصوير ڪڍو' : 'View / Screenshot Receipt'}" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition">
                     <i class="ph-bold ph-receipt text-base"></i>
                   </button>
+                  ${currentUserRole === 'admin' ? `
                   <button onclick="editEntry('${rec.id}')" title="Edit Entry" class="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition">
                     <i class="ph-bold ph-pencil-simple text-base"></i>
                   </button>
                   <button onclick="openDeleteModal('${rec.id}')" title="Delete Entry" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition">
                     <i class="ph-bold ph-trash text-base"></i>
                   </button>
+                  ` : ''}
                 </div>
               </td>
             `;
@@ -2056,12 +2531,14 @@
                     <i class="ph-bold ph-receipt text-sm"></i>
                     <span>${receiptText}</span>
                   </button>
+                  ${currentUserRole === 'admin' ? `
                   <button onclick="editEntry('${rec.id}')" class="p-2 rounded-lg text-slate-600 hover:text-brand-600 active:bg-slate-100 transition" title="Edit">
                     <i class="ph-bold ph-pencil-simple text-base"></i>
                   </button>
                   <button onclick="openDeleteModal('${rec.id}')" class="p-2 rounded-lg text-slate-600 hover:text-rose-600 active:bg-rose-50 transition" title="Delete">
                     <i class="ph-bold ph-trash text-base"></i>
                   </button>
+                  ` : ''}
                 </div>
               </div>
             `;
@@ -2179,18 +2656,82 @@
 
     // --- Firebase Cloud Database Management ---
     function initFirebaseFromStorage() {
-      const stored = localStorage.getItem(FIREBASE_CONFIG_KEY);
-      if (stored) {
-        try {
-          const config = JSON.parse(stored);
-          populateFirebaseModalInputs(config);
-          connectFirebase(config, false);
-        } catch (e) {
-          console.error('Error parsing stored Firebase config:', e);
-          updateCloudUIState('disconnected');
+      let config = null;
+
+      // 1. Check if device opened with WhatsApp/Auto-Setup link: #setup=...
+      try {
+        const hash = window.location.hash;
+        if (hash && hash.includes('setup=')) {
+          const encoded = hash.split('setup=')[1];
+          const raw = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.apiKey && parsed.projectId) {
+            localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(parsed));
+            config = parsed;
+            // Clean URL hash so address bar stays clean
+            history.replaceState(null, null, window.location.pathname + window.location.search);
+            setTimeout(() => {
+              showToast('Device automatically connected to Central Cloud Database!', 'success');
+            }, 600);
+          }
         }
+      } catch (err) {
+        console.warn('URL auto-setup parse error:', err);
+      }
+
+      // 2. Check localStorage for previously configured settings
+      if (!config) {
+        const stored = localStorage.getItem(FIREBASE_CONFIG_KEY);
+        if (stored) {
+          try {
+            config = JSON.parse(stored);
+          } catch (e) {
+            console.error('Error parsing stored Firebase config:', e);
+          }
+        }
+      }
+
+      // 3. Use DEFAULT_FIREBASE_CONFIG embedded in code (connects all devices out-of-the-box!)
+      if ((!config || !config.apiKey || !config.projectId) && DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.apiKey) {
+        config = DEFAULT_FIREBASE_CONFIG;
+      }
+
+      // 4. Connect if configuration is found
+      if (config && config.apiKey && config.projectId) {
+        populateFirebaseModalInputs(config);
+        connectFirebase(config, false);
       } else {
         updateCloudUIState('disconnected');
+      }
+    }
+
+    function copyDriverInviteLink() {
+      let cfg = null;
+      try {
+        const stored = localStorage.getItem(FIREBASE_CONFIG_KEY);
+        if (stored) cfg = JSON.parse(stored);
+      } catch (e) { }
+      if (!cfg && DEFAULT_FIREBASE_CONFIG && DEFAULT_FIREBASE_CONFIG.apiKey && DEFAULT_FIREBASE_CONFIG.projectId) {
+        cfg = DEFAULT_FIREBASE_CONFIG;
+      }
+      if (!cfg || !cfg.apiKey || !cfg.projectId) {
+        showToast('Please configure Firebase Cloud first before generating the driver invite link!', 'warning');
+        openFirebaseModal();
+        return;
+      }
+
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(cfg))));
+      const base = window.location.href.split('#')[0];
+      const link = base + '#setup=' + encodeURIComponent(encoded);
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+          showToast('Driver Auto-Connect Link copied! Send this link to drivers on WhatsApp.', 'success');
+        }).catch(() => {
+          prompt('Copy this link and send to drivers on WhatsApp:', link);
+        });
+      } else {
+        prompt('Copy this link and send to drivers on WhatsApp:', link);
       }
     }
 
@@ -2303,21 +2844,19 @@
       // Ensure record is always in sync queue until cloud write is acknowledged
       addToOfflineSyncQueue(record.id);
 
-      if (isFirebaseActive && firebaseDb) {
+      if (firebaseDb) {
         firebaseDb.collection('fuel_records').doc(record.id).set(record, { merge: true })
           .then(() => {
             removeFromOfflineSyncQueue(record.id);
-            showToast(isEdit ? 'Entry updated & auto-uploaded to Cloud!' : 'Refuel entry logged & auto-uploaded to Cloud!', 'success');
+            isFirebaseActive = true;
+            showToast(isEdit ? 'Entry updated & synced to Cloud!' : 'Refuel entry logged & synced to Cloud!', 'success');
             updateFormCloudSyncStatus();
           })
           .catch(err => {
             console.warn('Direct cloud upload delayed, pending in offline queue:', err);
-            showToast('Saved locally. Will auto-upload to Cloud when reconnected.', 'info');
             updateFormCloudSyncStatus();
           });
       } else {
-        const msg = isEdit ? 'Entry updated locally.' : 'Refuel logged locally. (Will auto-upload once Cloud is connected)';
-        showToast(msg, 'success');
         updateFormCloudSyncStatus();
       }
     }
@@ -2413,32 +2952,19 @@
         // Real-time snapshot listener on fuel_records collection
         firestoreUnsubscribe = firebaseDb.collection('fuel_records')
           .onSnapshot((snapshot) => {
-            const isUserCleared = localStorage.getItem(USER_CLEARED_FLAG_KEY) === 'true';
-
-            // If user deliberately cleared all data, NEVER resurrect cloud documents!
-            // Clean lingering documents from Cloud and enforce clean empty state until user adds a real entry.
-            if (isUserCleared) {
-              if (!snapshot.empty) {
-                console.log('Purging lingering records from Cloud following Clear All Data...');
-                snapshot.docs.forEach(doc => {
-                  doc.ref.delete().catch(() => { });
-                });
-              }
-              fuelRecords = [];
-              persistData();
-              updateDashboard();
-              filterAndRenderTable();
-              isFirebaseActive = true;
-              updateCloudUIState('connected', config.projectId);
-              updateFormCloudSyncStatus();
-              return;
-            }
-
             const deletedIds = getDeletedRecordIds();
             const cloudDocIds = new Set();
             const mergedMap = new Map();
 
-            // 1. Add all documents currently in the Cloud snapshot (filtering out deleted items)
+            // 1. Start with all existing valid local records so local entries are NEVER lost!
+            (fuelRecords || []).forEach(localRec => {
+              if (localRec && localRec.id && !deletedIds.has(localRec.id)) {
+                const clean = sanitizeRecord(localRec);
+                if (clean) mergedMap.set(clean.id, clean);
+              }
+            });
+
+            // 2. Merge all documents from Cloud snapshot (synchronized across all mobile devices & locations)
             snapshot.forEach(doc => {
               if (deletedIds.has(doc.id)) {
                 doc.ref.delete().catch(() => { });
@@ -2452,18 +2978,7 @@
               }
             });
 
-            // 2. Preserve local records that haven't been deleted
-            (fuelRecords || []).forEach(localRec => {
-              if (!localRec || !localRec.id) return;
-              if (deletedIds.has(localRec.id)) return;
-
-              if (!cloudDocIds.has(localRec.id)) {
-                mergedMap.set(localRec.id, sanitizeRecord(localRec));
-                addToOfflineSyncQueue(localRec.id);
-              }
-            });
-
-            // 3. Sort chronological descending
+            // 3. Sort chronological descending (newest refuels first)
             const records = Array.from(mergedMap.values());
             records.sort((a, b) => new Date(b.entryDateTime || 0) - new Date(a.entryDateTime || 0));
 
@@ -2475,8 +2990,11 @@
             updateCloudUIState('connected', config.projectId);
             updateFormCloudSyncStatus();
 
-            // 4. Auto-upload any records that need syncing to Cloud
-            flushOfflineSyncQueue();
+            // 4. If any local records are not yet in the cloud, upload them now so all devices receive them!
+            const unuploaded = records.filter(r => !cloudDocIds.has(r.id) && !deletedIds.has(r.id));
+            if (unuploaded.length > 0) {
+              uploadRecordsBatchToCloud(unuploaded);
+            }
           }, (err) => {
             console.error('Firestore onSnapshot error:', err);
             isFirebaseActive = false;
@@ -2668,7 +3186,11 @@
         colAmount: 'Total Amount',
         colPump: 'Petrol Station',
         colOdometer: 'Odometer',
-        colActions: 'Actions'
+        colActions: 'Actions',
+        roleAdmin: 'Admin',
+        roleUser: 'User',
+        btnExitPortal: 'Switch Portal',
+        appFooterText: 'App designed by Zonish Computer Academy Newjatoi'
       },
       sd: {
         appTitle: 'جتوئي فليٽ فيول ايم آءِ ايس',
@@ -2724,7 +3246,11 @@
         colAmount: 'ڪل رقم',
         colPump: 'پيٽرول پمپ',
         colOdometer: 'ڪلوميٽر (Km)',
-        colActions: 'عمل'
+        colActions: 'عمل',
+        roleAdmin: 'ايڊمن',
+        roleUser: 'يوزر',
+        btnExitPortal: 'پورٽل بدلايو',
+        appFooterText: 'App designed by Zonish Computer Academy Newjatoi'
       }
     };
 
@@ -2817,6 +3343,10 @@
         document.title = 'Jatoi Fleet Fuel MIS - Fuel & Mileage Tracker';
         if (btnEn) btnEn.className = 'px-2.5 py-1.5 rounded-md transition text-brand-600 bg-brand-50 font-bold';
         if (btnSd) btnSd.className = 'px-2.5 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 font-bold font-sindhi';
+      }
+
+      if (currentUserRole) {
+        applyRolePermissions(currentUserRole);
       }
 
       updateFormCloudSyncStatus();
@@ -3005,6 +3535,18 @@
       }, 3500);
     }
   </script>
+  <!-- Persistent App Footer -->
+  <footer
+    class="mt-auto py-3.5 sm:py-4 px-4 text-center text-xs font-semibold text-slate-600 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+      <span data-i18n="appFooterText">App designed by Zonish Computer Academy Newjatoi</span>
+      <a href="tel:03312943534"
+        class="text-brand-600 hover:text-brand-800 hover:underline font-bold inline-flex items-center gap-1">
+        <i class="ph-bold ph-phone text-sm"></i>
+        <span>03312943534</span>
+      </a>
+    </div>
+  </footer>
 </body>
 
 </html>
