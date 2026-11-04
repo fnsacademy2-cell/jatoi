@@ -1,0 +1,6 @@
+Record ID,Vehicle Plate,Fuel Type,Quantity (Liters),Rate Per Liter,Total Cost (PKR),Pump Station,Driver Name,Odometer Reading,Entry Date & Time,Notes,Logged At
+rec_1730700001001,GS-9821,Diesel,45.5,282.5,12853.75,PSO Station New Jatoi,Muhammad Ali,124500,2026-11-04T09:30,Full tank refuel for trip to Hyderabad,2026-11-04T09:30:00.000Z
+rec_1730700002002,LEA-4521,Petrol,32.0,275.6,8819.2,Shell Bypass Moro,Ghulam Shabbir,85210,2026-11-04T10:15,Official inspection visit,2026-11-04T10:15:00.000Z
+rec_1730700003003,KHI-7712,Diesel,60.0,282.5,16950.0,Total Parco National Highway,Tariq Jamil,198420,2026-11-04T11:00,Heavy cargo transport refuel,2026-11-04T11:00:00.000Z
+rec_1730700004004,HYD-1190,Petrol,25.0,275.6,6890.0,PSO City Pump Sakrand,Abdul Sattar,64120,2026-11-04T12:00,Routine city fleet run,2026-11-04T12:00:00.000Z
+rec_1730700005005,SND-5544,Diesel,50.0,282.5,14125.0,Attock Petroleum New Jatoi,Sikandar Ali,142300,2026-11-04T12:45,Evening reserve top-up,2026-11-04T12:45:00.000Z
