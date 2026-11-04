@@ -945,7 +945,7 @@
   <div id="sheetsModal"
     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div
-      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border border-slate-100 transform transition-all my-8 max-h-[92vh] flex flex-col">
+      class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl border border-slate-100 transform transition-all my-8 max-h-[92vh] flex flex-col">
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
         <div class="flex items-center gap-3">
@@ -964,21 +964,21 @@
         </button>
       </div>
 
-      <!-- Modal Body (Scrollable) -->
+      <!-- Modal Body -->
       <div class="space-y-4 overflow-y-auto custom-scrollbar pr-1 flex-1">
         <!-- Status Indicator Banner -->
         <div id="sheetsStatusBanner"
-          class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          class="flex items-center justify-between p-3.5 bg-emerald-50/80 rounded-xl border border-emerald-200 text-xs">
           <div class="flex items-center gap-2.5">
-            <span id="modalStatusDot" class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+            <span id="modalStatusDot" class="w-3 h-3 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
             <div>
-              <p id="modalStatusTitle" class="font-bold text-slate-800">Status: Local Storage Only (Offline Mode)</p>
-              <p id="modalStatusSubtitle" class="text-slate-500 text-[11px]">Connect your Google Sheet Web App URL to
-                sync all drivers in real time.</p>
+              <p id="modalStatusTitle" class="font-bold text-emerald-900">Status: Connected to Google Sheet</p>
+              <p id="modalStatusSubtitle" class="text-emerald-700 text-[11px]">Live cloud sync active. Entries
+                automatically record into your Google Sheet.</p>
             </div>
           </div>
           <button id="btnDisconnectSheets" onclick="disconnectGoogleSheets()"
-            class="hidden px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition font-medium">
+            class="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition font-medium">
             Disconnect
           </button>
         </div>
@@ -989,7 +989,9 @@
             Google Apps Script Web App URL <span class="text-rose-500">*</span>
           </label>
           <div class="relative">
-            <input type="url" id="sheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+            <input type="url" id="sheetsUrlInput"
+              value="https://script.google.com/macros/s/AKfycbx9d_6VmvmBn_EvdNWOWwKjc1WBX-_btDm8bVCzHoGhASJsPeW5lgt3c6NJmk5dBYtL/exec"
+              placeholder="https://script.google.com/macros/s/.../exec"
               class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-slate-800" />
           </div>
           <p class="text-[11px] text-slate-500">
@@ -997,75 +999,133 @@
           </p>
         </div>
 
-        <!-- Action Row: Test & Sync -->
+        <!-- Action Row: Test Connection & Save -->
         <div class="flex flex-wrap items-center gap-2 pt-1">
           <button type="button" onclick="testGoogleSheetsConnection()" id="btnTestSheets"
-            class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
-            <i class="ph-bold ph-plugs-connected text-emerald-600"></i>
+            class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+            <i class="ph-bold ph-plugs-connected text-emerald-400"></i>
             <span>Test Connection</span>
           </button>
-          <button type="button" onclick="syncAllToGoogleSheets()" id="btnSyncToSheets"
-            class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
-            <i class="ph-bold ph-cloud-arrow-up"></i>
-            <span>Upload Local Records to Sheet</span>
-          </button>
-          <button type="button" onclick="fetchFromGoogleSheets(true)" id="btnFetchFromSheets"
-            class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
-            <i class="ph-bold ph-arrows-clockwise"></i>
-            <span>Fetch Data from Sheet</span>
+          <button type="button" onclick="saveGoogleSheetsConfig()" id="btnSaveSheets"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5">
+            <i class="ph-bold ph-check"></i>
+            <span>Save & Connect</span>
           </button>
         </div>
 
         <!-- Live Diagnostic & Test Feedback Box -->
         <div id="sheetsTestFeedback" class="hidden p-3.5 rounded-xl text-xs space-y-2 border"></div>
 
-        <!-- 3-Step Setup Instructions Accordion / Box -->
-        <div class="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-3 text-xs text-slate-700">
-          <div class="flex items-center justify-between font-bold text-emerald-900 text-sm">
-            <div class="flex items-center gap-2">
-              <i class="ph-bold ph-file-spreadsheet text-emerald-600 text-lg"></i>
-              <span>How to setup Google Sheets in 2 minutes (100% Free & Unlimited)</span>
-            </div>
-            <button type="button" onclick="copyAppsScriptCode()"
-              class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1">
-              <i class="ph-bold ph-copy"></i> Copy Script
-            </button>
-          </div>
-          <ol class="list-decimal list-inside space-y-1.5 leading-relaxed text-slate-700">
-            <li>Open a new spreadsheet on <a href="https://sheets.new" target="_blank"
-                class="text-brand-600 font-bold underline">sheets.new</a> (e.g. name it <em>Jatoi Fleet Fuel MIS</em>).
-            </li>
-            <li>In Google Sheets menu, click <strong>Extensions &gt; Apps Script</strong>.</li>
-            <li>Delete any existing code in the editor, click <strong>"Copy Script"</strong> above, and paste it into
-              the editor. Press <kbd
-                class="px-1 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px]">Ctrl+S</kbd> to save.
-            </li>
-            <li>Click <strong>Deploy &gt; New deployment</strong> &rarr; Click gear icon &rarr; select <strong>Web
-                app</strong>:
-              <ul class="list-disc list-inside pl-4 mt-1 space-y-0.5 text-slate-600">
-                <li>Execute as: <strong>Me</strong></li>
-                <li>Who has access: <strong>Anyone</strong> (allows all driver phones to log refuels without Google
-                  account sign-in)</li>
-              </ul>
-            </li>
-            <li>Click <strong>Deploy</strong> &rarr; Authorize &rarr; Copy the <strong>Web App URL</strong>, paste it
-              into the box above, and click <strong>Save & Connect</strong>!</li>
-          </ol>
+        <!-- Developer Mode Lock Toggle -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button type="button" onclick="toggleDeveloperOptions()" id="btnDevToggle"
+            class="text-[11px] font-semibold text-slate-400 hover:text-slate-700 flex items-center gap-1.5 py-1 transition cursor-pointer">
+            <i id="devLockIcon" class="ph-bold ph-lock-key text-xs"></i>
+            <span id="devLockText">Developer Options (Locked)</span>
+          </button>
+          <span id="devUnlockedBadge"
+            class="hidden text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            Developer Mode Active
+          </span>
         </div>
 
-        <!-- Google Apps Script Code Preview -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Google Apps Script Code
-              (Code.gs)</span>
-            <button type="button" onclick="copyAppsScriptCode()"
-              class="text-xs text-emerald-600 font-semibold hover:underline flex items-center gap-1">
-              <i class="ph-bold ph-copy"></i> Copy code
+        <!-- Developer Password Prompt Inline Box -->
+        <div id="devPasswordPromptBox"
+          class="hidden p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+          <p class="font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="ph-bold ph-shield-check text-slate-900 text-sm"></i>
+            Developer Verification Required
+          </p>
+          <p class="text-slate-500 text-[11px]">Enter developer PIN to access advanced database sync scripts, batch
+            tools, and setup instructions:</p>
+          <div class="flex items-center gap-2">
+            <input type="password" id="devPasswordInput" placeholder="Enter developer PIN"
+              class="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"
+              onkeydown="if(event.key==='Enter') verifyDeveloperPassword()" />
+            <button type="button" onclick="verifyDeveloperPassword()"
+              class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition shadow-xs">
+              Unlock
+            </button>
+            <button type="button" onclick="cancelDeveloperPrompt()"
+              class="px-2.5 py-1.5 border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs rounded-lg transition">
+              Cancel
             </button>
           </div>
-          <textarea id="appsScriptCodeBox" readonly rows="6"
-            class="w-full p-3 font-mono text-[11px] bg-slate-900 text-emerald-400 rounded-xl focus:outline-none select-all custom-scrollbar leading-relaxed"></textarea>
+          <p id="devPasswordError" class="text-rose-600 text-[11px] font-medium hidden">Incorrect developer password.
+            Access denied.</p>
         </div>
+
+        <!-- Protected Developer Section (Hidden until unlocked with Developer Password) -->
+        <div id="developerProtectedSection" class="hidden space-y-4 pt-2 border-t border-slate-100">
+          <!-- Developer Action Row: Batch Sync & Fetch -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="syncAllToGoogleSheets()" id="btnSyncToSheets"
+              class="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
+              <i class="ph-bold ph-cloud-arrow-up"></i>
+              <span>Upload Local Records to Sheet</span>
+            </button>
+            <button type="button" onclick="fetchFromGoogleSheets(true)" id="btnFetchFromSheets"
+              class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
+              <i class="ph-bold ph-arrows-clockwise"></i>
+              <span>Fetch Data from Sheet</span>
+            </button>
+            <button type="button" onclick="lockDeveloperOptions()"
+              class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition flex items-center gap-1 shadow-xs ml-auto">
+              <i class="ph-bold ph-lock-key"></i>
+              <span>Lock</span>
+            </button>
+          </div>
+
+          <!-- 3-Step Setup Instructions Accordion / Box -->
+          <div class="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-3 text-xs text-slate-700">
+            <div class="flex items-center justify-between font-bold text-emerald-900 text-sm">
+              <div class="flex items-center gap-2">
+                <i class="ph-bold ph-file-spreadsheet text-emerald-600 text-lg"></i>
+                <span>How to setup Google Sheets in 2 minutes (100% Free & Unlimited)</span>
+              </div>
+              <button type="button" onclick="copyAppsScriptCode()"
+                class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1">
+                <i class="ph-bold ph-copy"></i> Copy Script
+              </button>
+            </div>
+            <ol class="list-decimal list-inside space-y-1.5 leading-relaxed text-slate-700">
+              <li>Open a new spreadsheet on <a href="https://sheets.new" target="_blank"
+                  class="text-brand-600 font-bold underline">sheets.new</a> (e.g. name it <em>Jatoi Fleet Fuel
+                  MIS</em>).
+              </li>
+              <li>In Google Sheets menu, click <strong>Extensions &gt; Apps Script</strong>.</li>
+              <li>Delete any existing code in the editor, click <strong>"Copy Script"</strong> above, and paste it into
+                the editor. Press <kbd
+                  class="px-1 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px]">Ctrl+S</kbd> to
+                save.
+              </li>
+              <li>Click <strong>Deploy &gt; New deployment</strong> &rarr; Click gear icon &rarr; select <strong>Web
+                  app</strong>:
+                <ul class="list-disc list-inside pl-4 mt-1 space-y-0.5 text-slate-600">
+                  <li>Execute as: <strong>Me</strong></li>
+                  <li>Who has access: <strong>Anyone</strong></li>
+                </ul>
+              </li>
+              <li>Click <strong>Deploy</strong> &rarr; Authorize &rarr; Copy the <strong>Web App URL</strong>, paste it
+                into the box above, and click <strong>Save & Connect</strong>!</li>
+            </ol>
+          </div>
+
+          <!-- Google Apps Script Code Preview -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Google Apps Script Code
+                (Code.gs)</span>
+              <button type="button" onclick="copyAppsScriptCode()"
+                class="text-xs text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+                <i class="ph-bold ph-copy"></i> Copy code
+              </button>
+            </div>
+            <textarea id="appsScriptCodeBox" readonly rows="6"
+              class="w-full p-3 font-mono text-[11px] bg-slate-900 text-emerald-400 rounded-xl focus:outline-none select-all custom-scrollbar leading-relaxed"></textarea>
+          </div>
+        </div>
+
       </div>
 
       <!-- Modal Footer Actions -->
@@ -1073,11 +1133,6 @@
         <button type="button" onclick="closeSheetsModal()"
           class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
           Close
-        </button>
-        <button type="button" onclick="saveGoogleSheetsConfig()" id="btnSaveSheets"
-          class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-md transition flex items-center gap-1.5">
-          <i class="ph-bold ph-check"></i>
-          <span>Save & Connect Sheet</span>
         </button>
       </div>
     </div>
@@ -1272,7 +1327,8 @@
     const ROLE_STORAGE_KEY = 'fleet_fuel_role_v1';
     const ADMIN_PIN_KEY = 'fleet_fuel_admin_pin_v1';
     const SHEETS_URL_KEY = 'fleet_fuel_sheets_url_v1';
-    let googleSheetsUrl = '';
+    const DEFAULT_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx9d_6VmvmBn_EvdNWOWwKjc1WBX-_btDm8bVCzHoGhASJsPeW5lgt3c6NJmk5dBYtL/exec';
+    let googleSheetsUrl = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
     let isSheetsActive = false;
     let isSheetsSyncing = false;
     let sheetsPollingTimer = null;
@@ -1431,6 +1487,18 @@
         window.addEventListener('online', function () {
           if (googleSheetsUrl) {
             flushOfflineSyncQueue();
+            fetchFromGoogleSheets(false);
+          }
+        });
+
+        // Instant cloud sync on window focus or tab visibility (clears deleted records automatically)
+        window.addEventListener('focus', function () {
+          if (googleSheetsUrl && !document.hidden) {
+            fetchFromGoogleSheets(false);
+          }
+        });
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden && googleSheetsUrl) {
             fetchFromGoogleSheets(false);
           }
         });
@@ -2097,6 +2165,11 @@
 
       // 2. Clear records in Google Sheet
       if (googleSheetsUrl) {
+        try {
+          const clearUrl = googleSheetsUrl + (googleSheetsUrl.includes('?') ? '&' : '?') + 'action=clear&_t=' + Date.now();
+          fetch(clearUrl, { redirect: 'follow' }).catch(() => { });
+        } catch (e) { }
+
         fetch(googleSheetsUrl, {
           method: 'POST',
           mode: 'no-cors',
@@ -2885,10 +2958,11 @@ function deleteRecord(sheet, id) {
         console.warn('Error parsing shared sheets link:', e);
       }
 
-      // 2. Load stored URL from localStorage
+      // 2. Load stored URL from localStorage or use default URL
       if (!googleSheetsUrl) {
-        googleSheetsUrl = (localStorage.getItem(SHEETS_URL_KEY) || '').trim();
+        googleSheetsUrl = (localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL).trim();
       }
+      localStorage.setItem(SHEETS_URL_KEY, googleSheetsUrl);
 
       // 3. Update modal inputs and template code box
       const urlInput = document.getElementById('sheetsUrlInput');
@@ -2932,29 +3006,41 @@ function deleteRecord(sheet, id) {
         if (data && data.status === 'success' && Array.isArray(data.records)) {
           const deletedIds = getDeletedRecordIds();
           const remoteRecords = data.records;
-          const mergedMap = new Map();
+          const freshMap = new Map();
+          const remoteIdSet = new Set();
 
-          // 1. Existing local records
-          (fuelRecords || []).forEach(localRec => {
-            if (localRec && localRec.id && !deletedIds.has(localRec.id)) {
-              const clean = sanitizeRecord(localRec);
-              if (clean) mergedMap.set(clean.id, clean);
-            }
-          });
-
-          // 2. Merge records from Google Sheet
+          // 1. Google Sheets is Cloud Master: Load all live records currently in the Sheet
           remoteRecords.forEach(remoteRec => {
             if (remoteRec && remoteRec.id && !deletedIds.has(remoteRec.id)) {
               const clean = sanitizeRecord(remoteRec);
               if (clean) {
-                mergedMap.set(clean.id, clean);
+                freshMap.set(clean.id, clean);
+                remoteIdSet.add(clean.id);
                 removeFromOfflineSyncQueue(clean.id);
               }
             }
           });
 
-          // 3. Sort newest first
-          const finalRecords = Array.from(mergedMap.values());
+          // 2. Only preserve un-synced offline records that are waiting in the offline queue
+          const pendingQueue = getOfflineSyncQueue();
+          pendingQueue.forEach(item => {
+            if (item && item.action === 'save' && item.record && item.record.id) {
+              if (!deletedIds.has(item.record.id) && !remoteIdSet.has(item.record.id)) {
+                const clean = sanitizeRecord(item.record);
+                if (clean) freshMap.set(clean.id, clean);
+              }
+            }
+          });
+
+          // 3. Clean up local tombstone list: if an ID is no longer in Google Sheets, confirm deletion
+          deletedIds.forEach(id => {
+            if (!remoteIdSet.has(id)) {
+              removeDeletedRecordId(id);
+            }
+          });
+
+          // 4. Overwrite local fuelRecords directly with fresh cloud master records (purges any record deleted by another user)
+          const finalRecords = Array.from(freshMap.values());
           finalRecords.sort((a, b) => new Date(b.entryDateTime || 0) - new Date(a.entryDateTime || 0));
 
           fuelRecords = finalRecords;
@@ -3335,6 +3421,79 @@ function deleteRecord(sheet, id) {
         updateCloudUIState('disconnected');
         showToast('Disconnected from Google Sheet. Operating in Local Mode.', 'info');
       }
+    }
+
+    // --- Developer Options Password Protection System ---
+    const DEV_PASSWORDS = ['dev123', 'admin123', '03312943534', 'zonish123'];
+    let isDeveloperUnlocked = false;
+
+    function toggleDeveloperOptions() {
+      if (isDeveloperUnlocked) {
+        lockDeveloperOptions();
+        return;
+      }
+      const promptBox = document.getElementById('devPasswordPromptBox');
+      const input = document.getElementById('devPasswordInput');
+      const err = document.getElementById('devPasswordError');
+      if (err) err.classList.add('hidden');
+      if (input) input.value = '';
+      if (promptBox) {
+        promptBox.classList.toggle('hidden');
+        if (!promptBox.classList.contains('hidden')) {
+          setTimeout(() => input && input.focus(), 80);
+        }
+      }
+    }
+
+    function cancelDeveloperPrompt() {
+      const promptBox = document.getElementById('devPasswordPromptBox');
+      const input = document.getElementById('devPasswordInput');
+      const err = document.getElementById('devPasswordError');
+      if (input) input.value = '';
+      if (err) err.classList.add('hidden');
+      if (promptBox) promptBox.classList.add('hidden');
+    }
+
+    function verifyDeveloperPassword() {
+      const input = document.getElementById('devPasswordInput');
+      const err = document.getElementById('devPasswordError');
+      const val = input ? input.value.trim() : '';
+      if (DEV_PASSWORDS.includes(val)) {
+        isDeveloperUnlocked = true;
+        const promptBox = document.getElementById('devPasswordPromptBox');
+        if (promptBox) promptBox.classList.add('hidden');
+        const section = document.getElementById('developerProtectedSection');
+        if (section) section.classList.remove('hidden');
+        const badge = document.getElementById('devUnlockedBadge');
+        if (badge) badge.classList.remove('hidden');
+        const lockIcon = document.getElementById('devLockIcon');
+        const lockText = document.getElementById('devLockText');
+        if (lockIcon) lockIcon.className = 'ph-bold ph-lock-key-open text-emerald-600 text-xs';
+        if (lockText) lockText.textContent = 'Developer Options (Click to Lock)';
+        showToast('Developer Mode Unlocked!', 'success');
+      } else {
+        if (err) err.classList.remove('hidden');
+        if (input) {
+          input.focus();
+          input.select();
+        }
+        showToast('Incorrect Developer Password!', 'error');
+      }
+    }
+
+    function lockDeveloperOptions() {
+      isDeveloperUnlocked = false;
+      const section = document.getElementById('developerProtectedSection');
+      if (section) section.classList.add('hidden');
+      const promptBox = document.getElementById('devPasswordPromptBox');
+      if (promptBox) promptBox.classList.add('hidden');
+      const badge = document.getElementById('devUnlockedBadge');
+      if (badge) badge.classList.add('hidden');
+      const lockIcon = document.getElementById('devLockIcon');
+      const lockText = document.getElementById('devLockText');
+      if (lockIcon) lockIcon.className = 'ph-bold ph-lock-key text-xs';
+      if (lockText) lockText.textContent = 'Developer Options (Locked)';
+      showToast('Developer Options Locked.', 'info');
     }
 
     function openSheetsModal() {
